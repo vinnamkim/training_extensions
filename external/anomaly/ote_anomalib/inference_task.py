@@ -93,6 +93,10 @@ class AnomalyInferenceTask(IInferenceTask, IEvaluationTask, IExportTask, IUnload
 
         self.trainer: Trainer
 
+        # Set default model attributes.
+        self._optimization_type = ModelOptimizationType.MO
+
+
     def get_config(self) -> Union[DictConfig, ListConfig]:
         """Get Anomalib Config from task environment.
 
@@ -238,6 +242,8 @@ class AnomalyInferenceTask(IInferenceTask, IEvaluationTask, IExportTask, IUnload
             Exception: If export_type is not ExportType.OPENVINO
         """
         assert export_type == ExportType.OPENVINO
+        output_model.model_format = ModelFormat.OPENVINO
+        output_model.optimization_type = self._optimization_type
 
         output_model.model_format = ModelFormat.OPENVINO
         output_model.optimization_type = self.optimization_type
