@@ -341,7 +341,7 @@ def ote_deploy_openvino_testing(template, root, ote_dir, args, load_from_dir=Fal
                 "python3",
                 "demo_patched.py",
                 "-m",
-                "../model/model.xml",
+                "../model/" if load_from_dir else "../model/model.xml",
                 "-i",
                 os.path.join(ote_dir, args["--input"]),
             ],
