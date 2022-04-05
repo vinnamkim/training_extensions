@@ -1,0 +1,20 @@
+ARG TAG
+FROM mmcls:${TAG}
+ENV http_proxy="http://proxy-dmz.intel.com:912/"
+ENV https_proxy="http://proxy-dmz.intel.com:912/"
+ENV no_proxy="127.0.0.1,localhost,intel.com"
+ENV TZ="Asia/Seoul"
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV FORCE_CUDA="1"
+ARG DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /ote
+ADD . .
+RUN . /env/classification/bin/activate \
+    && pip3 install -e ote_cli \
+    && pip3 install -e ote_sdk \
+    && pip3 install notebook ipywidgets
+ENV PATH=/env/classification/bin:$PATH
+# EXPOSE 8888
+# ENTRYPOINT [ "jupyter-notebook", "--ip=0.0.0.0", "--allow-root", "--no-browser" ]

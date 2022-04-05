@@ -1,0 +1,21 @@
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
+ENV http_proxy="http://proxy-dmz.intel.com:912/"
+ENV https_proxy="http://proxy-dmz.intel.com:912/"
+ENV no_proxy="127.0.0.1,localhost,intel.com"
+ENV TZ="Asia/Seoul"
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV FORCE_CUDA="1"
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y \
+        python3.8-dev \
+        python3-venv \
+        python3.8-venv \
+        python3-opencv \
+        git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /ote
+ADD ./external/deep-object-reid ./external/deep-object-reid
+WORKDIR /env
+RUN /ote/external/deep-object-reid/init_venv.sh classification python3.8; exit 0
