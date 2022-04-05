@@ -3,4 +3,4 @@ FROM otedet:${TAG}
 
 ENV JUPYTER_TOKEN="easy"
 EXPOSE 8888
-ENTRYPOINT [ "jupyter-notebook", "--ip=0.0.0.0", "--allow-root", "--no-browser" ]
+ENTRYPOINT [ "jupyter-notebook", "--ip=0.0.0.0", "--allow-root", "--no-browser", "--NotebookApp.token=''" ]
