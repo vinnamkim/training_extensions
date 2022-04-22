@@ -1,6 +1,8 @@
 nvidia-docker run -d --rm -p 8888:8888 \
     --name=ote-jupyter \
     --ipc=host \
+    -e http_proxy:$http_proxy \
+    -e https_proxy:$https_proxy \
     -v /local_ssd3/dataset:/dataset \
     -v /local_ssd3/vinnamki/outputs:/outputs \
     -v /local_ssd3/vinnamki/tmp:/tmp \
