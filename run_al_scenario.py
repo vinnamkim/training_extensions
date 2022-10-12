@@ -71,7 +71,7 @@ if __name__ == "__main__":
                     dname, root_dir=root_dir, train_ann_file=train_ann_file
                 )
 
-                dataset_size = get_size(anno)
+                n_imgs, n_anns = get_size(anno)
                 n_bbox_noise = get_bbox_noise_size(anno)
                 n_cls_noise = get_cls_noise_size(anno)
 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
                 del output["bbox_mAP_copypaste"]
 
                 def _get_noisy_cands(min_size):
-                    cand_size = max(min_size, int(dataset_size * noise_rate))
+                    cand_size = max(min_size, int(n_anns * noise_rate))
                     cand_size1 = cand_size // 2
                     cand_size2 = cand_size - cand_size1
 
@@ -115,6 +115,8 @@ if __name__ == "__main__":
                     anno_to_add = gen_noise_labels(
                         anno_to_add, seed=seed, noise_rate=noise_rate
                     )
+                    add_n_bbox_noise = get_bbox_noise_size(anno_to_add)
+                    add_n_cls_noise = get_cls_noise_size(anno_to_add)
                     anno = merge_anno(anno, anno_to_add)
 
                 after_n_bbox_noise = get_bbox_noise_size(anno)
@@ -122,7 +124,8 @@ if __name__ == "__main__":
 
                 to_log = {}
                 to_log["seed"] = seed
-                to_log["dataset_size"] = dataset_size
+                to_log["n_imgs"] = n_imgs
+                to_log["n_anns"] = n_anns
                 to_log["cycle"] = cycle
                 to_log["dataset_name"] = dname
                 to_log["noise_rate"] = noise_rate
@@ -130,6 +133,8 @@ if __name__ == "__main__":
                 to_log["n_cls_noise"] = n_cls_noise
                 to_log["after_n_bbox_noise"] = after_n_bbox_noise
                 to_log["after_n_cls_noise"] = after_n_cls_noise
+                to_log["add_n_bbox_noise"] = add_n_bbox_noise
+                to_log["add_n_cls_noise"] = add_n_cls_noise
                 to_log["n_fix_bbox"] = n_fix_bbox
                 to_log["n_fix_cls"] = n_fix_cls
                 to_log["method"] = method

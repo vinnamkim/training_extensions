@@ -2,7 +2,7 @@ import json
 import os
 import random
 from copy import deepcopy
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from mmcv import Config
@@ -123,9 +123,10 @@ def get_init_subset_ids(anno, num_samples: int, seed: int = 0):
     return ids[:num_samples]
 
 
-def get_size(anno) -> int:
-    ids = [img["id"] for img in anno["images"]]
-    return len(ids)
+def get_size(anno) -> Tuple[int, int]:
+    img_ids = [img["id"] for img in anno["images"]]
+    ann_ids = [ann["id"] for ann in anno["annotations"]]
+    return len(img_ids), len(ann_ids)
 
 
 # def gen_noise_anno(
