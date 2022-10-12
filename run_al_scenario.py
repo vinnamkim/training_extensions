@@ -117,6 +117,9 @@ if __name__ == "__main__":
                     )
                     anno = merge_anno(anno, anno_to_add)
 
+                after_n_bbox_noise = get_bbox_noise_size(anno)
+                after_n_cls_noise = get_cls_noise_size(anno)
+
                 to_log = {}
                 to_log["seed"] = seed
                 to_log["dataset_size"] = dataset_size
@@ -125,6 +128,8 @@ if __name__ == "__main__":
                 to_log["noise_rate"] = noise_rate
                 to_log["n_bbox_noise"] = n_bbox_noise
                 to_log["n_cls_noise"] = n_cls_noise
+                to_log["after_n_bbox_noise"] = after_n_bbox_noise
+                to_log["after_n_cls_noise"] = after_n_cls_noise
                 to_log["n_fix_bbox"] = n_fix_bbox
                 to_log["n_fix_cls"] = n_fix_cls
                 to_log["method"] = method
