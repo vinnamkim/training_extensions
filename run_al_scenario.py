@@ -28,13 +28,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset-name", required=True, type=str, help="Dataset name")
 parser.add_argument(
-    "--root-dir", default="/mnt/ssd2/sc_datasets_det", type=str, help="Dataset name"
+    "--root-dir", default="/local_ssd2/vinnamki/sc_datasets_det", type=str, help="Dataset name"
 )
 parser.add_argument("--method", required=True, type=str, help="Dataset name")
-parser.add_argument("--n-reps", default=1, type=int, help="N repetitions")
+parser.add_argument("--n-reps", default=10, type=int, help="N repetitions")
 parser.add_argument("--noise-rate", default=0.05, type=float, help="Noise rate")
 parser.add_argument("--n-add", default=16, type=int, help="N add")
-parser.add_argument("--n-cycles", default=2, type=int, help="N cycles")
+parser.add_argument("--n-cycles", default=5, type=int, help="N cycles")
 
 args = parser.parse_args()
 
@@ -55,13 +55,13 @@ if __name__ == "__main__":
     if not os.path.exists(csv_dir):
         os.makedirs(csv_dir)
 
+    results = []
+
     for seed in range(n_reps):
         full_anno = read_train_anno(dname, root_dir=root_dir)
         subset_ids = get_init_subset_ids(full_anno, n_add, seed=seed)
         anno = gen_subset_anno(dname, subset_ids, root_dir=root_dir)
         anno = gen_noise_labels(anno, seed=seed, noise_rate=noise_rate)
-
-        results = []
 
         for cycle in range(1, n_cycles + 1):
             with TemporaryDirectory() as work_dir:
@@ -79,20 +79,26 @@ if __name__ == "__main__":
                 output = test_al_scenario(train_cfg, work_dir)
                 del output["bbox_mAP_copypaste"]
 
-                cand_size = max(10, int(dataset_size * noise_rate))
-                cand_size1 = cand_size // 2
-                cand_size2 = cand_size - cand_size1
+                def _get_noisy_cands(min_size):
+                    cand_size = max(min_size, int(dataset_size * noise_rate))
+                    cand_size1 = cand_size // 2
+                    cand_size2 = cand_size - cand_size1
 
-                noisy_cands = get_noisy_label_cands("output")
-                noisy_cand_ids = (
-                    noisy_cands["bbox_cands"][-cand_size1:]
-                    + noisy_cands["cls_cands"][-cand_size2:]
-                )
+                    noisy_cands = get_noisy_label_cands(work_dir)
+                    noisy_cand_ids = (
+                        noisy_cands["bbox_cands"][-cand_size1:]
+                        + noisy_cands["cls_cands"][-cand_size2:]
+                    )
+                    return noisy_cand_ids
+
                 if method == "correct":
+                    noisy_cand_ids = _get_noisy_cands(10)
                     anno, n_fix_bbox, n_fix_cls = correct(anno, noisy_cand_ids)
                 elif method == "drop":
+                    noisy_cand_ids = _get_noisy_cands(2)
                     anno, n_fix_bbox, n_fix_cls = drop(anno, noisy_cand_ids)
                 elif method == "nothing":
+                    noisy_cand_ids = _get_noisy_cands(10)
                     anno, n_fix_bbox, n_fix_cls = nothing(anno, noisy_cand_ids)
                 else:
                     raise NotImplementedError()

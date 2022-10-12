@@ -241,6 +241,7 @@ def get_cfg(
     root_dir: str = "/mnt/ssd2/sc_datasets_det",
     config_path: str = "external/mmdetection/configs/custom-object-detection/gen3_mobilenetV2_ATSS/noise_config_16.py",
     train_ann_file: Optional[str] = None,
+    use_small_val: bool = True
 ):
     ann_files = {
         key: os.path.join(root_dir, dname, "annotations", f"instances_{key}.json")
@@ -249,6 +250,11 @@ def get_cfg(
 
     if train_ann_file:
         ann_files["train"] = train_ann_file
+
+    small_val_path = os.path.join(root_dir, dname, "annotations", "instances_val_100.json")
+    if use_small_val and os.path.exists(small_val_path):
+        ann_files["val"] = small_val_path
+        print("Use small val ann file")
 
     img_prefixes = {
         key: os.path.join(root_dir, dname, "images", key) for key in ann_files

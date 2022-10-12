@@ -24,6 +24,7 @@ def load_best_ckpt(model, output_dir):
                 best_epoch = epoch
                 best_fpath = os.path.join(output_dir, fname)
 
+    print(f"Load best epoch={best_epoch}")
     ckpt = torch.load(best_fpath)
     model.load_state_dict(ckpt["state_dict"])
     return model
