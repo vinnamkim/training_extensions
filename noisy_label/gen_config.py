@@ -195,7 +195,7 @@ def get_bbox_noise_size(anno):
 
 
 def get_cls_noise_size(anno):
-    return len([ann for ann in anno["annotations"] if ann["noise"] == 1])
+    return len([ann for ann in anno["annotations"] if ann["noise"] == 2])
 
 
 def merge_anno(anno1, anno2):
