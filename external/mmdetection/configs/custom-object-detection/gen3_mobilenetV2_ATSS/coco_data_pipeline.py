@@ -1,4 +1,4 @@
-dataset_type = 'LabelNoiseCocoDataset'
+dataset_type = 'CocoDataset'
 img_size = (992, 736)
 img_norm_cfg = dict(mean=[0, 0, 0], std=[255, 255, 255], to_rgb=True)
 
@@ -17,8 +17,7 @@ train_pipeline = [
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='DefaultFormatBundle'),
-    dict(type="LabelNoiseBundle"),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'noise_labels', 'anno_ids'])
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),

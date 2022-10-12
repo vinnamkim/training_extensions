@@ -123,29 +123,23 @@ model = dict(
         nms=dict(type='nms', iou_threshold=0.6),
         max_per_img=100))
 
-evaluation = dict(interval=5, metric='mAP', save_best='mAP')
+evaluation = dict(interval=1, metric='mAP', save_best='mAP')
 optimizer = dict(
     type='SGD',
     lr=0.008,
     momentum=0.9,
     weight_decay=0.0001)
 optimizer_config = dict()
-# lr_config = dict(
-#     policy='ReduceLROnPlateau',
-#     metric='mAP',
-#     patience=5,
-#     iteration_patience=600,
-#     interval=1,
-#     min_lr=0.000008,
-#     warmup='linear',
-#     warmup_iters=200,
-#     warmup_ratio=1.0 / 3)
 lr_config = dict(
-    policy='step',
+    policy='ReduceLROnPlateau',
+    metric='mAP',
+    patience=5,
+    iteration_patience=600,
+    interval=1,
+    min_lr=0.000008,
     warmup='linear',
-    warmup_iters=1,
-    warmup_ratio=0.001,
-    step=[50, 65])
+    warmup_iters=200,
+    warmup_ratio=1.0 / 3)
 
 checkpoint_config = dict(interval=5)
 log_config = dict(
@@ -154,7 +148,7 @@ log_config = dict(
         dict(type='TextLoggerHook'),
         # dict(type='TensorboardLoggerHook'),
     ])
-runner = dict(type='EpochBasedRunner', max_epochs=40)
+runner = dict(type='EpochBasedRunner', max_epochs=300)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = 'output'
@@ -162,5 +156,6 @@ load_from = 'https://storage.openvinotoolkit.org/repositories/openvino_training_
 resume_from = None
 workflow = [('train', 1)]
 custom_hooks = [
-    dict(type='SaveLossDynamicsHook')
+    dict(type='SaveLossDynamicsHook'),
+    dict(type='EarlyStoppingHook', patience=8, iteration_patience=1000, metric='mAP', interval=1, priority=75)
 ]
