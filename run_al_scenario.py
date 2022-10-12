@@ -136,5 +136,5 @@ if __name__ == "__main__":
                 results += [to_log]
 
                 df = pd.DataFrame(results)
-                csv_path = os.path.join(csv_dir, dname + ".csv")
+                csv_path = os.path.join(csv_dir, dname + "-" + method + ".csv")
                 df.to_csv(csv_path)
