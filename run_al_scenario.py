@@ -108,7 +108,7 @@ if __name__ == "__main__":
                 elif cycle == n_cycles:
                     print("This is the last cycle.")
                 else:
-                    feature_vectors = get_feats(work_dir, dname)
+                    feature_vectors = get_feats(work_dir, root_dir, dname)
                     seen_ids = [img["uid"] for img in anno["images"]]
                     cand_ids, scores = get_cand(seen_ids, feature_vectors, n_add)
                     anno_to_add = gen_subset_anno(dname, cand_ids, root_dir=root_dir)

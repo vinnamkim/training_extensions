@@ -30,9 +30,10 @@ def load_best_ckpt(model, output_dir):
     return model
 
 
-def get_feats(output_dir, dname):
+def get_feats(output_dir, root_dir, dname):
     cfg = get_cfg(
         dname,
+        root_dir=root_dir,
         config_path="external/mmdetection/configs/custom-object-detection/gen3_mobilenetV2_ATSS/model.py",
     )
     cfg.data.test.ann_file = cfg.data.train.dataset.ann_file
