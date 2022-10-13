@@ -117,10 +117,10 @@ if __name__ == "__main__":
                     else:
                         raise NotImplementedError()
 
-                if cycle + 1 == n_cycles:
-                    print("Next cycle is the last cycle. Don't add new samples.")
-                elif cycle == n_cycles:
-                    print("This is the last cycle.")
+                if n_cycle -1 <= cycle <= n_cycles:
+                    add_n_bbox_noise = 0
+                    add_n_cls_noise = 0
+                    print("Next cycle is the last cycle or this cycle is the last cycle. Don't add new samples.")
                 else:
                     feature_vectors = get_feats(work_dir, root_dir, dname)
                     seen_ids = [img["uid"] for img in anno["images"]]
