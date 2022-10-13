@@ -14,7 +14,8 @@ def get_ema_loss_dyns(work_dir, gamma: float = 0.99):
     def _get_ema(key):
         out = {}
         for k, v in loss_dyns[key].items():
-            series = pd.Series(v)
+            dyns = [0.0] + v  # Start from zero to prevent bias to the initial value
+            series = pd.Series(dyns)
             ema_v = series.ewm(alpha=1 - gamma).mean().iloc[-1]
             out[k] = ema_v
         return out

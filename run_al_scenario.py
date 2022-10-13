@@ -28,7 +28,10 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset-name", required=True, type=str, help="Dataset name")
 parser.add_argument(
-    "--root-dir", default="/local_ssd2/vinnamki/sc_datasets_det", type=str, help="Dataset name"
+    "--root-dir",
+    default="/local_ssd2/vinnamki/sc_datasets_det",
+    type=str,
+    help="Dataset name",
 )
 parser.add_argument("--method", required=True, type=str, help="Dataset name")
 parser.add_argument("--n-reps", default=10, type=int, help="N repetitions")
@@ -37,6 +40,19 @@ parser.add_argument("--n-add", default=16, type=int, help="N add")
 parser.add_argument("--n-cycles", default=5, type=int, help="N cycles")
 
 args = parser.parse_args()
+
+
+def _get_noisy_cands(min_size, n_anns, noise_rate, work_dir):
+    cand_size = max(min_size, int(n_anns * noise_rate))
+    cand_size1 = cand_size // 2
+    cand_size2 = cand_size - cand_size1
+
+    noisy_cands = get_noisy_label_cands(work_dir)
+    ids = (
+        noisy_cands["bbox_cands"][-cand_size1:] + noisy_cands["cls_cands"][-cand_size2:]
+    )
+    return ids
+
 
 if __name__ == "__main__":
     print("Start")
@@ -79,29 +95,27 @@ if __name__ == "__main__":
                 output = test_al_scenario(train_cfg, work_dir)
                 del output["bbox_mAP_copypaste"]
 
-                def _get_noisy_cands(min_size):
-                    cand_size = max(min_size, int(n_anns * noise_rate))
-                    cand_size1 = cand_size // 2
-                    cand_size2 = cand_size - cand_size1
-
-                    noisy_cands = get_noisy_label_cands(work_dir)
-                    noisy_cand_ids = (
-                        noisy_cands["bbox_cands"][-cand_size1:]
-                        + noisy_cands["cls_cands"][-cand_size2:]
-                    )
-                    return noisy_cand_ids
-
-                if method == "correct":
-                    noisy_cand_ids = _get_noisy_cands(10)
-                    anno, n_fix_bbox, n_fix_cls = correct(anno, noisy_cand_ids)
-                elif method == "drop":
-                    noisy_cand_ids = _get_noisy_cands(2)
-                    anno, n_fix_bbox, n_fix_cls = drop(anno, noisy_cand_ids)
-                elif method == "nothing":
-                    noisy_cand_ids = _get_noisy_cands(10)
-                    anno, n_fix_bbox, n_fix_cls = nothing(anno, noisy_cand_ids)
+                if cycle == n_cycles:
+                    print("This is the last cycle. Don't do anything for noisy labels.")
+                    n_fix_bbox, n_fix_cls = 0, 0
                 else:
-                    raise NotImplementedError()
+                    if method == "correct":
+                        noisy_cand_ids = _get_noisy_cands(
+                            10, n_anns, noise_rate, work_dir
+                        )
+                        anno, n_fix_bbox, n_fix_cls = correct(anno, noisy_cand_ids)
+                    elif method == "drop":
+                        noisy_cand_ids = _get_noisy_cands(
+                            2, n_anns, noise_rate, work_dir
+                        )
+                        anno, n_fix_bbox, n_fix_cls = drop(anno, noisy_cand_ids)
+                    elif method == "nothing":
+                        noisy_cand_ids = _get_noisy_cands(
+                            10, n_anns, noise_rate, work_dir
+                        )
+                        anno, n_fix_bbox, n_fix_cls = nothing(anno, noisy_cand_ids)
+                    else:
+                        raise NotImplementedError()
 
                 if cycle + 1 == n_cycles:
                     print("Next cycle is the last cycle. Don't add new samples.")
