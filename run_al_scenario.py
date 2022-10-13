@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     n_cycles = args.n_cycles
     method = args.method
-    csv_dir = "csv_results"
+    csv_dir = os.path.join("csv_results", f"n_add_{n_add}_noise_rate_{noise_rate}")
 
     if not os.path.exists(csv_dir):
         os.makedirs(csv_dir)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
                     else:
                         raise NotImplementedError()
 
-                if n_cycle -1 <= cycle <= n_cycles:
+                if n_cycles - 1 <= cycle <= n_cycles:
                     add_n_bbox_noise = 0
                     add_n_cls_noise = 0
                     print("Next cycle is the last cycle or this cycle is the last cycle. Don't add new samples.")
