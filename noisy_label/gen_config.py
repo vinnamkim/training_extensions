@@ -98,12 +98,26 @@ def save_anno(anno, work_dir):
         json.dump(anno, fp)
     return path
 
+def reid(imgs, anns):
+    lookup = {}
+    for new_id, v in enumerate(imgs):
+        old_id = v["id"]
+        lookup[old_id] = new_id
+        v["id"] = new_id
+    
+    for new_id, v in enumerate(anns):
+        v["id"] = new_id
+        img_id = v["image_id"]
+        v["image_id"] = lookup[img_id]
 
 def read_train_anno(dname: str, root_dir: str = "/mnt/ssd2/sc_datasets_det"):
     ann_file = os.path.join(root_dir, dname, "annotations", "instances_train.json")
 
     with open(ann_file, "r", encoding="utf-8") as fp:
         anno = json.load(fp)
+
+    # ReID
+    reid(anno["images"], anno["annotations"])
 
     N = len(anno["annotations"])
     for ann in anno["annotations"]:
