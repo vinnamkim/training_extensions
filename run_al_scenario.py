@@ -120,7 +120,9 @@ if __name__ == "__main__":
                 if n_cycles - 1 <= cycle <= n_cycles:
                     add_n_bbox_noise = 0
                     add_n_cls_noise = 0
-                    print("Next cycle is the last cycle or this cycle is the last cycle. Don't add new samples.")
+                    print(
+                        "Next cycle is the last cycle or this cycle is the last cycle. Don't add new samples."
+                    )
                 else:
                     feature_vectors = get_feats(work_dir, root_dir, dname)
                     seen_ids = [img["uid"] for img in anno["images"]]

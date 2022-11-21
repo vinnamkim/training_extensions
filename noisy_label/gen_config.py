@@ -98,17 +98,19 @@ def save_anno(anno, work_dir):
         json.dump(anno, fp)
     return path
 
+
 def reid(imgs, anns):
     lookup = {}
     for new_id, v in enumerate(imgs):
         old_id = v["id"]
         lookup[old_id] = new_id
         v["id"] = new_id
-    
+
     for new_id, v in enumerate(anns):
         v["id"] = new_id
         img_id = v["image_id"]
         v["image_id"] = lookup[img_id]
+
 
 def read_train_anno(dname: str, root_dir: str = "/mnt/ssd2/sc_datasets_det"):
     ann_file = os.path.join(root_dir, dname, "annotations", "instances_train.json")
@@ -256,7 +258,7 @@ def get_cfg(
     root_dir: str = "/mnt/ssd2/sc_datasets_det",
     config_path: str = "external/mmdetection/configs/custom-object-detection/gen3_mobilenetV2_ATSS/noise_config_16.py",
     train_ann_file: Optional[str] = None,
-    use_small_val: bool = True
+    use_small_val: bool = True,
 ):
     ann_files = {
         key: os.path.join(root_dir, dname, "annotations", f"instances_{key}.json")
@@ -266,7 +268,9 @@ def get_cfg(
     if train_ann_file:
         ann_files["train"] = train_ann_file
 
-    small_val_path = os.path.join(root_dir, dname, "annotations", "instances_val_100.json")
+    small_val_path = os.path.join(
+        root_dir, dname, "annotations", "instances_val_100.json"
+    )
     if use_small_val and os.path.exists(small_val_path):
         ann_files["val"] = small_val_path
         print("Use small val ann file")
