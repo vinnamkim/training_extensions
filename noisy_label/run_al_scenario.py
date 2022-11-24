@@ -111,3 +111,29 @@ def test_al_scenario(cfg: Config, work_dir: str = "output"):
     outputs = single_gpu_test(model, data_loader)
 
     return dataset.evaluate(outputs)
+
+
+def pred_train_dataloader(cfg: Config, work_dir: str = "output"):
+    cfg.work_dir = work_dir
+
+    model = build_detector(
+        cfg.model, train_cfg=cfg.get("train_cfg"), test_cfg=cfg.get("test_cfg")
+    )
+
+    model = load_best_ckpt(model, output_dir=work_dir)
+    data_cfg = deepcopy(cfg.data.test)
+    data_cfg["img_prefix"] = cfg.data.train["dataset"]["img_prefix"]
+    data_cfg["ann_file"] = cfg.data.train["dataset"]["ann_file"]
+    dataset = build_dataset(data_cfg)
+    data_loader = build_dataloader(
+        dataset,
+        samples_per_gpu=cfg.data.samples_per_gpu,
+        workers_per_gpu=cfg.data.workers_per_gpu,
+        dist=False,
+        shuffle=False,
+    )
+
+    model = MMDataParallel(model, device_ids=[0])
+    outputs = single_gpu_test(model, data_loader)
+
+    return outputs

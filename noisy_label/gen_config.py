@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 import os
 import random
@@ -84,6 +85,33 @@ def gen_noise_labels(anno, seed: int = 0, noise_rate: float = 0.05):
     return anno
 
 
+def gen_missing_labels(anno, seed: int = 0, noise_rate: float = 0.05):
+    random.seed(seed)
+    annots = anno["annotations"]
+
+    N = len(annots)
+    M = max(int(N * noise_rate), 2)
+    print(f"N={N}, M={M}")
+
+    random.shuffle(annots)
+
+    no_set = annots[:M]
+    ok_set = annots[M:]
+
+    def _remove_bbox(ann):
+        ann["noise"] = 3
+
+    for idx, ann in enumerate(no_set):
+        _remove_bbox(ann)
+
+    for ann in ok_set:
+        ann["noise"] = 0
+
+    anno["annotations"] = no_set + ok_set
+
+    return anno
+
+
 def get_path_16_subset(
     dname, root_dir: str = "/mnt/ssd2/sc_datasets_det", seed: int = 1
 ):
@@ -128,6 +156,15 @@ def read_train_anno(dname: str, root_dir: str = "/mnt/ssd2/sc_datasets_det"):
     N = len(anno["images"])
     for ann in anno["images"]:
         assert 0 <= ann["id"] < N
+
+    counts = defaultdict(int)
+    for ann in anno["annotations"]:
+        counts[ann["image_id"]] += 1
+
+    counts = np.array(list(counts.values()))
+    mean = np.mean(counts)
+    std = np.std(counts)
+    print(f"Avg annotations per image = {mean:.1f} std = {std:.1f}")
 
     return anno
 
@@ -214,6 +251,10 @@ def get_cls_noise_size(anno):
     return len([ann for ann in anno["annotations"] if ann["noise"] == 2])
 
 
+def get_miss_noise_size(anno):
+    return len([ann for ann in anno["annotations"] if ann["noise"] == 3])
+
+
 def merge_anno(anno1, anno2):
     for key in ["licenses", "info", "categories"]:
         assert anno1[key] == anno2[key]
@@ -286,6 +327,7 @@ def get_cfg(
     annots = anno["annotations"]
     cnt_bbox_noise = 0
     cnt_cls_noise = 0
+    cnt_miss_noise = 0
     for ann in annots:
         if "noise" in ann:
             key = ann["noise"]
@@ -293,9 +335,11 @@ def get_cfg(
                 cnt_bbox_noise += 1
             elif key == 2:
                 cnt_cls_noise += 1
+            elif key == 3:
+                cnt_miss_noise += 1
 
     print(
-        f"N={len(annots)} cnt_bbox_noise={cnt_bbox_noise} cnt_cls_noise={cnt_cls_noise}"
+        f"N={len(annots)} cnt_bbox_noise={cnt_bbox_noise} cnt_cls_noise={cnt_cls_noise} cnt_miss_noise={cnt_miss_noise}"
     )
 
     cfg = Config.fromfile(config_path)
