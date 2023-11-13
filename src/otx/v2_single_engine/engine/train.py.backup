@@ -1,0 +1,63 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from pytorch_lightning import LightningDataModule, LightningModule
+from pytorch_lightning.trainer import Trainer
+
+from otx.v2_single_engine.config import OTXConfig
+from otx.v2_single_engine.model import OTXModel
+
+from .utils import BUILD_CONTEXT, allow_build
+
+if TYPE_CHECKING:
+    from pytorch_lightning.callbacks import Callback
+
+
+class OTXTrainer:
+    @allow_build
+    @classmethod
+    def build_from_config(cls, config: OTXConfig):
+        """Build trainer from config lazily"""
+        return cls()
+
+    @allow_build
+    @classmethod
+    def build_from_components(
+        cls,
+        model: OTXModel,
+        datamodule: LightningDataModule,
+        callbacks: list[Callback],
+        config: OTXConfig,
+    ):
+        """Build trainer from componenets"""
+        return cls(
+            module=model,
+            datamodule=datamodule,
+            trainer=Trainer(
+                callbacks=callbacks,
+                accelerator=config.trainer.accelerator,
+                precision=config.trainer.precision,
+            ),
+        )
+
+    def __init__(
+        self,
+        module: LightningModule,
+        trainer: Trainer,
+        datamodule: LightningDataModule,
+    ):
+        if not BUILD_CONTEXT.get():
+            raise RuntimeError(
+                "Cannot create this object from constructor. "
+                "Use class methods: build_from_config and build_from_componenets",
+            )
+        self.module = module
+        self.trainer = trainer
+        self.datamodule = datamodule
+
+    def __call__(self):
+        self.trainer.fit(
+            model=self.module,
+            datamodule=self.datamodule,
+        )
