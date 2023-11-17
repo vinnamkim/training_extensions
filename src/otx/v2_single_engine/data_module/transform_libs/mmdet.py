@@ -18,7 +18,7 @@ from otx.v2_single_engine.data_entity.detection import DetDataEntity
 from .mmcv import MMCVTransformLib
 
 if TYPE_CHECKING:
-    from otx.v2_single_engine.config.data_module import SubsetConfig
+    from otx.v2_single_engine.config_structs.data_module import SubsetConfig
 
 
 @TRANSFORMS.register_module(force=True)

@@ -27,7 +27,7 @@
 
 import hydra
 from omegaconf import DictConfig
-from otx.v2_single_engine.config.train import register_configs, TrainConfig
+from otx.v2_single_engine.config_structs.train import register_configs, TrainConfig
 from typing import Any, Dict, List, Optional, Tuple
 
 import hydra

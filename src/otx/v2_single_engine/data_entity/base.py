@@ -6,7 +6,7 @@ from enum import IntEnum, auto
 import numpy as np
 from torchvision import tv_tensors
 
-from otx.v2_single_engine.enums.task import OTXTask
+from otx.v2_single_engine.types.task import OTXTaskType
 
 
 @dataclass()
@@ -47,7 +47,7 @@ class OTXDataEntity:
     :param imgs_info: Meta information for images
     """
 
-    task: OTXTask
+    task: OTXTaskType
     image_type: ImageType
     image: np.ndarray | tv_tensors.Image
     img_info: ImageInfo
@@ -65,7 +65,7 @@ class OTXBatchDataEntity:
     :param imgs_info: Meta information for images
     """
 
-    task: OTXTask
+    task: OTXTaskType
     batch_size: int
     images: list[tv_tensors.Image]
     imgs_info: list[ImageInfo]

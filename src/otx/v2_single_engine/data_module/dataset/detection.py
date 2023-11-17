@@ -9,7 +9,7 @@ from torchvision import tv_tensors
 
 from otx.v2_single_engine.data_entity.base import ImageInfo, ImageType
 from otx.v2_single_engine.data_entity.detection import DetBatchEntity, DetDataEntity
-from otx.v2_single_engine.enums.task import OTXTask
+from otx.v2_single_engine.types.task import OTXTaskType
 import cv2
 from .base import OTXDataset
 
@@ -36,7 +36,7 @@ class OTXDetectionDataset(OTXDataset):
         )
 
         entity = DetDataEntity(
-            task=OTXTask.DETECTION,
+            task=OTXTaskType.DETECTION,
             image_type=ImageType.NUMPY,
             image=img_data,
             img_info=ImageInfo(

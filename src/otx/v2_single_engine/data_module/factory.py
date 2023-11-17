@@ -4,25 +4,25 @@ from typing import TYPE_CHECKING
 
 from datumaro import DatasetSubset
 
-from otx.v2_single_engine.enums.task import OTXTask
-from otx.v2_single_engine.enums.transformers import TransformLibType
+from otx.v2_single_engine.types.task import OTXTaskType
+from otx.v2_single_engine.types.transformer_libs import TransformLibType
 
 from .dataset.base import OTXDataset
 
 if TYPE_CHECKING:
-    from otx.v2_single_engine.config.data_module import SubsetConfig
+    from otx.v2_single_engine.config_structs.data_module import SubsetConfig
 
 
 class TransformerFactory:
     @classmethod
     def generate(cls, config: SubsetConfig):
         if config.transform_lib_type == TransformLibType.MMCV:
-            from .transformers.mmcv import MMCVTransformLib
+            from .transform_libs.mmcv import MMCVTransformLib
 
             return MMCVTransformLib.generate(config)
 
         if config.transform_lib_type == TransformLibType.MMDET:
-            from .transformers.mmdet import MMDetTransformLib
+            from .transform_libs.mmdet import MMDetTransformLib
 
             return MMDetTransformLib.generate(config)
 
@@ -33,13 +33,13 @@ class OTXDatasetFactory:
     @classmethod
     def create(
         cls,
-        task: OTXTask,
+        task: OTXTaskType,
         dm_subset: DatasetSubset,
         config: SubsetConfig,
     ) -> OTXDataset:
         transforms = TransformerFactory.generate(config)
 
-        if task == OTXTask.DETECTION:
+        if task == OTXTaskType.DETECTION:
             from .dataset.detection import OTXDetectionDataset
 
             return OTXDetectionDataset(dm_subset, transforms)

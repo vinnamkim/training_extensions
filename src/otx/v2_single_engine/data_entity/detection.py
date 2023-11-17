@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import torch
 from torchvision import tv_tensors
 
-from otx.v2_single_engine.enums.task import OTXTask
+from otx.v2_single_engine.types.task import OTXTaskType
 
 from .base import OTXBatchDataEntity, OTXDataEntity
 
@@ -19,7 +19,7 @@ class DetDataEntity(OTXDataEntity):
     :param labels: Bbox labels as integer indices
     """
 
-    task: OTXTask = OTXTask.DETECTION
+    task: OTXTaskType = OTXTaskType.DETECTION
     bboxes: tv_tensors.BoundingBoxes
     labels: torch.LongTensor
 

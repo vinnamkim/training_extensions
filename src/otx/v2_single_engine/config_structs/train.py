@@ -1,5 +1,5 @@
 from typing import Literal
-from otx.v2_single_engine.enums.task import OTXTask
+from otx.v2_single_engine.types.task import OTXTaskType
 from dataclasses import dataclass
 from omegaconf import DictConfig
 from pathlib import Path
@@ -14,7 +14,7 @@ from .data_module import DataModuleConfig
 
 @dataclass
 class BasicConfig:
-    task: OTXTask
+    task: OTXTaskType
 
     work_dir: Path
     data_dir: Path

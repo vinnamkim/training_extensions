@@ -7,19 +7,19 @@ from datumaro import Dataset as DmDataset
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
-from otx.v2_single_engine.config import DataModuleConfig
-from otx.v2_single_engine.enums.task import OTXTask
+from otx.v2_single_engine.config_structs import DataModuleConfig
+from otx.v2_single_engine.types.task import OTXTaskType
 
 from .factory import OTXDatasetFactory
 
 if TYPE_CHECKING:
-    from otx.v2_single_engine.config.data_module import SubsetConfig
+    from otx.v2_single_engine.config_structs.data_module import SubsetConfig
 
     from .dataset.base import OTXDataset
 
 
 class OTXDataModule(LightningDataModule):
-    def __init__(self, task: OTXTask, config: DataModuleConfig):
+    def __init__(self, task: OTXTaskType, config: DataModuleConfig):
         self.task = task
         self.config = config
         self.subsets: dict[str, OTXDataset] = {}

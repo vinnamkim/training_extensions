@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from otx.v2_single_engine.enums.task import OTXTask
+from otx.v2_single_engine.types.task import OTXTaskType
 
 from .data_module import DataModuleConfig
 from .model import ModelConfig

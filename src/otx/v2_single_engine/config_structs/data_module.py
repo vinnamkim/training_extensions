@@ -2,7 +2,7 @@ from typing import Any
 
 from dataclasses import dataclass
 
-from otx.v2_single_engine.enums.transformers import TransformLibType
+from otx.v2_single_engine.types.transformer_libs import TransformLibType
 
 
 @dataclass

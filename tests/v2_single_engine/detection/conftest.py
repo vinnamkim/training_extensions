@@ -1,7 +1,7 @@
 import pytest
-from otx.v2_single_engine.enums.task import OTXTask
-from otx.v2_single_engine.config import DataModuleConfig
-from otx.v2_single_engine.config.data_module import SubsetConfig
+from otx.v2_single_engine.types.task import OTXTaskType
+from otx.v2_single_engine.config_structs import DataModuleConfig
+from otx.v2_single_engine.config_structs.data_module import SubsetConfig
 import os.path as osp
 from otx.v2_single_engine.data_module import OTXDataModule
 
@@ -38,7 +38,7 @@ def fxt_datamodule(fxt_asset_dir, fxt_mmcv_det_transform_config) -> OTXDataModul
         },
     )
     datamodule = OTXDataModule(
-        task=OTXTask.DETECTION,
+        task=OTXTaskType.DETECTION,
         config=config,
     )
     datamodule.prepare_data()
