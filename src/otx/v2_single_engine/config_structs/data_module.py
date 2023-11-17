@@ -1,6 +1,5 @@
-from typing import Any
-
 from dataclasses import dataclass
+from typing import Any
 
 from otx.v2_single_engine.types.transformer_libs import TransformLibType
 

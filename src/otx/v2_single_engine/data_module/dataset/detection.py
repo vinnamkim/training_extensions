@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Callable
 
+import cv2
 import numpy as np
 import torch
 from datumaro import Bbox, DatasetSubset, Image
@@ -10,7 +11,7 @@ from torchvision import tv_tensors
 from otx.v2_single_engine.data_entity.base import ImageInfo, ImageType
 from otx.v2_single_engine.data_entity.detection import DetBatchEntity, DetDataEntity
 from otx.v2_single_engine.types.task import OTXTaskType
-import cv2
+
 from .base import OTXDataset
 
 

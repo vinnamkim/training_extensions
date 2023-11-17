@@ -1,8 +1,10 @@
-from typing import Literal
-from otx.v2_single_engine.types.task import OTXTaskType
 from dataclasses import dataclass
-from omegaconf import DictConfig
 from pathlib import Path
+
+from omegaconf import DictConfig
+
+from otx.v2_single_engine.types.task import OTXTaskType
+
 from .data_module import DataModuleConfig
 
 # @dataclass

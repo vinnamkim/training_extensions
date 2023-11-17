@@ -1,9 +1,5 @@
-from dataclasses import dataclass
 
-from otx.v2_single_engine.types.task import OTXTaskType
 
-from .data_module import DataModuleConfig
-from .model import ModelConfig
 # from .trainer import TrainerConfig
 
 

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+from numbers import Number
 from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 from mmcv.transforms import LoadImageFromFile as MMCVLoadImageFromFile
 from mmcv.transforms.builder import TRANSFORMS
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import DictConfig, OmegaConf
+
 from otx.v2_single_engine.data_entity.base import OTXDataEntity
-from mmengine.config import Config
-from numbers import Number
 
 if TYPE_CHECKING:
     from otx.v2_single_engine.config_structs.data_module import SubsetConfig

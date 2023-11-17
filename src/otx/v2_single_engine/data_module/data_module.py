@@ -7,12 +7,12 @@ from datumaro import Dataset as DmDataset
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
-from otx.v2_single_engine.config_structs import DataModuleConfig
 from otx.v2_single_engine.types.task import OTXTaskType
 
 from .factory import OTXDatasetFactory
 
 if TYPE_CHECKING:
+    from otx.v2_single_engine.config_structs.data_module import DataModuleConfig
     from otx.v2_single_engine.config_structs.data_module import SubsetConfig
 
     from .dataset.base import OTXDataset
@@ -53,7 +53,7 @@ class OTXDataModule(LightningDataModule):
     def _get_dataset(self, subset: str) -> OTXDataset:
         if (dataset := self.subsets.get(subset)) is None:
             raise ValueError(
-                f"Dataset has no '{subset}'. Available subsets = {self.subsets.keys()}"
+                f"Dataset has no '{subset}'. Available subsets = {self.subsets.keys()}",
             )
         return dataset
 

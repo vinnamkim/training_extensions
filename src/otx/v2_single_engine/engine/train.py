@@ -25,16 +25,13 @@
 # # ------------------------------------------------------------------------------------ #
 
 
-import hydra
-from omegaconf import DictConfig
-from otx.v2_single_engine.config_structs.train import register_configs, TrainConfig
-from typing import Any, Dict, List, Optional, Tuple
-
-import hydra
-from omegaconf import DictConfig
-
-
 import logging as log
+from typing import Any, Dict, List, Tuple
+
+import hydra
+from omegaconf import DictConfig
+
+from otx.v2_single_engine.config_structs.train import TrainConfig, register_configs
 
 # log = utils.get_pylogger(__name__)
 
@@ -42,10 +39,11 @@ import logging as log
 # @utils.task_wrapper
 def train(cfg: TrainConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     import lightning as L
-    from lightning import Callback, LightningDataModule, LightningModule, Trainer
+    from lightning import Callback, LightningModule, Trainer
     from lightning.pytorch.loggers import Logger
-    from otx.v2_single_engine.engine import utils
+
     from otx.v2_single_engine.data_module import OTXDataModule
+    from otx.v2_single_engine.engine import utils
 
     """Trains the model. Can additionally evaluate on a testset, using best weights obtained during
     training.
@@ -74,7 +72,7 @@ def train(cfg: TrainConfig) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
     trainer: Trainer = hydra.utils.instantiate(
-        cfg.trainer, callbacks=callbacks, logger=logger
+        cfg.trainer, callbacks=callbacks, logger=logger,
     )
 
     object_dict = {
