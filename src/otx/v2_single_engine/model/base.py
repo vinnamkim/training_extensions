@@ -5,12 +5,15 @@
 from abc import abstractmethod
 from typing import Any, Dict
 
-from torch import Tensor, nn
-
 import torch
 from lightning import LightningModule
-from otx.v2_single_engine.data_entity.base import OTXBatchDataEntity
-import torchvision.tv_tensors as tv_tensors
+from torch import Tensor, nn
+
+from otx.v2_single_engine.data_entity.base import (
+    OTXBatchDataEntity,
+    OTXBatchLossEntity,
+    OTXBatchPredEntity,
+)
 
 
 class OTXModel(nn.Module):
@@ -23,15 +26,26 @@ class OTXModel(nn.Module):
         pass
 
     def customize_inputs(self, inputs: OTXBatchDataEntity) -> Dict[str, Any]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    def forward(self, inputs: OTXBatchDataEntity) -> Dict[str, Tensor] | Tensor:
+    def customize_outputs(self, outputs: Any) -> OTXBatchPredEntity:
+        raise NotImplementedError
+
+    def forward(
+        self, inputs: OTXBatchDataEntity,
+    ) -> OTXBatchLossEntity | OTXBatchPredEntity:
         # If customize_inputs is overrided
-        if self.customize_inputs != OTXModel.customize_inputs:
-            inputs = self.customize_inputs(inputs)
-            return self.model(**inputs)
+        outputs = (
+            self.model(**self.customize_inputs(inputs))
+            if self.customize_inputs != OTXModel.customize_inputs
+            else self.model(inputs)
+        )
 
-        return self.model(inputs)
+        return (
+            self.customize_outputs(outputs)
+            if self.customize_outputs != OTXModel.customize_outputs
+            else outputs
+        )
 
 
 class OTXLitModule(LightningModule):
@@ -48,14 +62,14 @@ class OTXLitModule(LightningModule):
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
-        self.save_hyperparameters(logger=False)
+        self.save_hyperparameters(logger=False, ignore=["otx_model"])
 
     def training_step(self, inputs: OTXBatchDataEntity, batch_idx: int) -> Tensor:
         train_loss = self.model(inputs)
 
         if isinstance(train_loss, Tensor):
             self.log(
-                "train/loss", train_loss, on_step=True, on_epoch=False, prog_bar=True
+                "train/loss", train_loss, on_step=True, on_epoch=False, prog_bar=True,
             )
             return train_loss
         elif isinstance(train_loss, dict):
@@ -68,7 +82,11 @@ class OTXLitModule(LightningModule):
                     prog_bar=True,
                 )
 
-            return sum(train_loss.values())
+            train_loss = sum(train_loss.values())
+            self.log(
+                "train/loss", train_loss, on_step=True, on_epoch=False, prog_bar=True,
+            )
+            return train_loss
 
         raise TypeError(train_loss)
 
@@ -100,9 +118,13 @@ class OTXLitModule(LightningModule):
                 "optimizer": optimizer,
                 "lr_scheduler": {
                     "scheduler": scheduler,
-                    "monitor": "val/loss",
+                    "monitor": self.lr_scheduler_monitor_key,
                     "interval": "epoch",
                     "frequency": 1,
                 },
             }
         return {"optimizer": optimizer}
+
+    @property
+    def lr_scheduler_monitor_key(self) -> str:
+        return "val/loss"

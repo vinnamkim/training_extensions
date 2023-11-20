@@ -9,7 +9,7 @@ from datumaro import Bbox, DatasetSubset, Image
 from torchvision import tv_tensors
 
 from otx.v2_single_engine.data_entity.base import ImageInfo, ImageType
-from otx.v2_single_engine.data_entity.detection import DetBatchEntity, DetDataEntity
+from otx.v2_single_engine.data_entity.detection import DetBatchDataEntity, DetDataEntity
 from otx.v2_single_engine.types.task import OTXTaskType
 
 from .base import OTXDataset
@@ -59,4 +59,4 @@ class OTXDetectionDataset(OTXDataset):
 
     @property
     def collate_fn(self):
-        return DetBatchEntity.collate_fn
+        return DetBatchDataEntity.collate_fn

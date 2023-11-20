@@ -12,8 +12,7 @@ from otx.v2_single_engine.types.task import OTXTaskType
 from .factory import OTXDatasetFactory
 
 if TYPE_CHECKING:
-    from otx.v2_single_engine.config_structs.data_module import DataModuleConfig
-    from otx.v2_single_engine.config_structs.data_module import SubsetConfig
+    from otx.v2_single_engine.config_structs.data_module import DataModuleConfig, SubsetConfig
 
     from .dataset.base import OTXDataset
 
@@ -93,7 +92,7 @@ class OTXDataModule(LightningDataModule):
     def setup(self, stage):
         pass
 
-    def teardown(self):
+    def teardown(self, stage):
         # clean up after fit or test
         # called on every process in DDP
         pass

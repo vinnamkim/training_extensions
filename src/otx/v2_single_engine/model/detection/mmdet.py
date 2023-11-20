@@ -2,29 +2,31 @@
 # Since the task determines the input and output format of the model, we can define the following abstract model class for each task.
 # At this time, what OTX model developers need to do is very clear: Implement the two abstract functions.
 from __future__ import annotations
-from typing import Any, Dict, TYPE_CHECKING
 
-from omegaconf import OmegaConf, DictConfig
+from typing import TYPE_CHECKING, Any
+
+from omegaconf import DictConfig
+from torchvision import tv_tensors
+
+from otx.v2_single_engine.data_entity.detection import DetBatchPredEntity
+from otx.v2_single_engine.types.task import OTXTaskType
+from otx.v2_single_engine.utils.config import convert_conf_to_mmconfig_dict
 
 # This is an example for MMDetection models
 # In this way, we can easily import some models developed from the MM community
-from .base import OTXDetectionModel, OTXDetectionLitModule
-from mmengine.config import Config as MMConfig
+from .base import OTXDetectionModel
 
 if TYPE_CHECKING:
-    from torch import nn
-    from otx.v2_single_engine.data_entity.detection import DetBatchEntity
     from mmdet.models.data_preprocessors import DetDataPreprocessor
+    from torch import nn
 
-
-def dict_config_to_mmconfig(config: DictConfig):
-    return MMConfig(cfg_dict=OmegaConf.to_container(config))
+    from otx.v2_single_engine.data_entity.detection import DetBatchDataEntity
 
 
 class MMDetCompatibleModel(OTXDetectionModel):
-    def __init__(self, config: MMConfig | DictConfig):
+    def __init__(self, config: DictConfig):
         self.config = (
-            dict_config_to_mmconfig(config)
+            convert_conf_to_mmconfig_dict(config)
             if isinstance(config, DictConfig)
             else config
         )
@@ -42,7 +44,7 @@ class MMDetCompatibleModel(OTXDetectionModel):
 
         return MODELS.build(self.config)
 
-    def customize_inputs(self, entity: DetBatchEntity) -> Dict[str, Any]:
+    def customize_inputs(self, entity: DetBatchDataEntity) -> dict[str, Any]:
         from mmdet.structures import DetDataSample
         from mmengine.structures import InstanceData
 
@@ -76,32 +78,69 @@ class MMDetCompatibleModel(OTXDetectionModel):
 
         return mmdet_inputs
 
+    def customize_outputs(self, outputs: Any) -> DetBatchPredEntity:
+        from mmdet.structures import DetDataSample
 
-class MMDetCompatibleLitModule(OTXDetectionLitModule):
-    def validation_step(self, inputs: DetBatchEntity, batch_idx: int) -> None:
-        """Perform a single validation step on a batch of data from the validation set.
+        if self.training:
+            if not isinstance(outputs, dict):
+                raise TypeError(outputs)
 
-        :param batch: A batch of data (a tuple) containing the input tensor of images and target
-            labels.
-        :param batch_idx: The index of the current batch.
-        """
-        preds = self.model(inputs)
+            return {k: 1 / (len(v) + 1e-6) * sum(v) for k, v in outputs.items()}
 
-        # update and log metrics
-        self.val_loss(loss)
-        self.val_acc(preds, targets)
-        self.log("val/loss", self.val_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
+        scores = []
+        bboxes = []
+        labels = []
 
-    def on_validation_epoch_end(self) -> None:
-        "Lightning hook that is called when a validation epoch ends."
-        acc = self.val_acc.compute()  # get current val acc
-        self.val_acc_best(acc)  # update best so far val acc
-        # log `val_acc_best` as a value through `.compute()` method, instead of as a metric object
-        # otherwise metric would be reset by lightning after each epoch
-        self.log(
-            "val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True
+        for output in outputs:
+            if not isinstance(output, DetDataSample):
+                raise TypeError(output)
+
+            scores.append(output.pred_instances.scores)
+            bboxes.append(
+                tv_tensors.BoundingBoxes(
+                    output.pred_instances.bboxes,
+                    format="XYXY",
+                    canvas_size=output.img_shape,
+                ),
+            )
+            labels.append(output.pred_instances.labels)
+
+        return DetBatchPredEntity(
+            task=OTXTaskType.DETECTION,
+            batch_size=len(outputs),
+            images=[],
+            imgs_info=[],
+            scores=scores,
+            bboxes=bboxes,
+            labels=labels,
         )
+
+
+# class MMDetCompatibleLitModule(OTXDetectionLitModule):
+#     def validation_step(self, inputs: DetBatchEntity, batch_idx: int) -> None:
+#         """Perform a single validation step on a batch of data from the validation set.
+
+#         :param batch: A batch of data (a tuple) containing the input tensor of images and target
+#             labels.
+#         :param batch_idx: The index of the current batch.
+#         """
+#         preds = self.model(inputs)
+
+#         # update and log metrics
+#         self.val_loss(loss)
+#         self.val_acc(preds, targets)
+#         self.log("val/loss", self.val_loss, on_step=False, on_epoch=True, prog_bar=True)
+#         self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
+
+#     def on_validation_epoch_end(self) -> None:
+#         "Lightning hook that is called when a validation epoch ends."
+#         acc = self.val_acc.compute()  # get current val acc
+#         self.val_acc_best(acc)  # update best so far val acc
+#         # log `val_acc_best` as a value through `.compute()` method, instead of as a metric object
+#         # otherwise metric would be reset by lightning after each epoch
+#         self.log(
+#             "val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True
+#         )
 
 
 # Those designs require OTX to have only one data pipeline and engine

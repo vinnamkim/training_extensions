@@ -7,7 +7,7 @@ from torchvision import tv_tensors
 
 from otx.v2_single_engine.types.task import OTXTaskType
 
-from .base import OTXBatchDataEntity, OTXDataEntity
+from .base import OTXBatchDataEntity, OTXBatchPredEntity, OTXDataEntity, OTXPredEntity
 
 
 @dataclass(kw_only=True)
@@ -25,7 +25,12 @@ class DetDataEntity(OTXDataEntity):
 
 
 @dataclass(kw_only=True)
-class DetBatchEntity(OTXBatchDataEntity):
+class DetPredEntity(DetDataEntity, OTXPredEntity):
+    pass
+
+
+@dataclass(kw_only=True)
+class DetBatchDataEntity(OTXBatchDataEntity):
     """Data entity for detection task
 
     :param bboxes: A list of bbox annotations as top-left-bottom-right
@@ -37,7 +42,7 @@ class DetBatchEntity(OTXBatchDataEntity):
     labels: list[torch.LongTensor]
 
     @classmethod
-    def collate_fn(cls, entities: list[DetDataEntity]) -> DetBatchEntity:
+    def collate_fn(cls, entities: list[DetDataEntity]) -> DetBatchDataEntity:
         batch_data = super().collate_fn(entities)
         return cls(
             task=batch_data.task,
@@ -47,3 +52,8 @@ class DetBatchEntity(OTXBatchDataEntity):
             bboxes=[entity.bboxes for entity in entities],
             labels=[entity.labels for entity in entities],
         )
+
+
+@dataclass(kw_only=True)
+class DetBatchPredEntity(DetBatchDataEntity, OTXBatchPredEntity):
+    pass

@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 from mmcv.transforms import LoadImageFromFile as MMCVLoadImageFromFile
 from mmcv.transforms.builder import TRANSFORMS
-from omegaconf import DictConfig, OmegaConf
 
 from otx.v2_single_engine.data_entity.base import OTXDataEntity
+from otx.v2_single_engine.utils.config import convert_conf_to_mmconfig_dict
 
 if TYPE_CHECKING:
     from otx.v2_single_engine.config_structs.data_module import SubsetConfig
@@ -54,7 +53,8 @@ class MMCVTransformLib:
     @classmethod
     def generate(cls, config: SubsetConfig) -> list[Callable]:
         transforms = [
-            cls.get_builder().build(cls.to_mmconfig(cfg)) for cfg in config.transforms
+            cls.get_builder().build(convert_conf_to_mmconfig_dict(cfg))
+            for cfg in config.transforms
         ]
 
         cls.check_mandatory_transforms(
@@ -63,21 +63,3 @@ class MMCVTransformLib:
         )
 
         return transforms
-
-    @staticmethod
-    def to_mmconfig(cfg: DictConfig):
-        mm_config = OmegaConf.to_container(cfg)
-
-        def to_tuple(dict_: dict):
-            # MMDET Mosaic asserts whether "img_shape" is tuple
-            # File "/home/vinnamki/miniconda3/envs/otxv2/lib/python3.10/site-packages/mmdet/datasets/transforms/transforms.py", line 2324, in __init__
-
-            for k, v in dict_.items():
-                if isinstance(v, list) and all(isinstance(elem, Number) for elem in v):
-                    dict_[k] = tuple(v)
-                elif isinstance(v, dict):
-                    to_tuple(v)
-
-            return dict_
-
-        return to_tuple(mm_config)

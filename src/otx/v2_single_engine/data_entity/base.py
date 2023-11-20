@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import IntEnum, auto
 
 import numpy as np
+from torch import Tensor
 from torchvision import tv_tensors
 
 from otx.v2_single_engine.types.task import OTXTaskType
@@ -54,6 +55,11 @@ class OTXDataEntity:
 
 
 @dataclass(kw_only=True)
+class OTXPredEntity(OTXDataEntity):
+    score: np.ndarray | Tensor
+
+
+@dataclass(kw_only=True)
 class OTXBatchDataEntity:
     """Base Batch data entity for OTX
 
@@ -91,3 +97,12 @@ class OTXBatchDataEntity:
             images=[entity.image for entity in entities],
             imgs_info=[entity.img_info for entity in entities],
         )
+
+
+@dataclass(kw_only=True)
+class OTXBatchPredEntity(OTXBatchDataEntity):
+    scores: list[np.ndarray] | list[Tensor]
+
+
+class OTXBatchLossEntity(dict[str, Tensor]):
+    pass

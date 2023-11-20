@@ -1,91 +1,91 @@
 # @package _global_
 defaults:
-- override /base: detection
-- override /data: mmdet
-- override /model: mmdet
+  - override /base: detection
+  - override /data: mmdet
+  - override /model: mmdet
 
 data:
   subsets:
     train:
       transforms:
-      - backend_args: null
-        type: LoadImageFromFile
-      - type: LoadAnnotations
-        with_bbox: true
-      - img_scale:
-        - 640
-        - 640
-        max_cached_images: 20
-        pad_val: 114.0
-        random_pop: false
-        type: CachedMosaic
-      - keep_ratio: true
-        ratio_range:
-        - 0.5
-        - 2.0
-        scale:
-        - 1280
-        - 1280
-        type: RandomResize
-      - crop_size:
-        - 640
-        - 640
-        type: RandomCrop
-      - type: YOLOXHSVRandomAug
-      - prob: 0.5
-        type: RandomFlip
-      - pad_val:
-          img:
-          - 114
-          - 114
-          - 114
-        size:
-        - 640
-        - 640
-        type: Pad
-      - img_scale:
-        - 640
-        - 640
-        max_cached_images: 10
-        pad_val:
-        - 114
-        - 114
-        - 114
-        prob: 0.5
-        random_pop: false
-        ratio_range:
-        - 1.0
-        - 1.0
-        type: CachedMixUp
-      - type: PackDetInputs
+        - backend_args: null
+          type: LoadImageFromFile
+        - type: LoadAnnotations
+          with_bbox: true
+        - img_scale:
+            - 640
+            - 640
+          max_cached_images: 20
+          pad_val: 114.0
+          random_pop: false
+          type: CachedMosaic
+        - keep_ratio: true
+          ratio_range:
+            - 0.5
+            - 2.0
+          scale:
+            - 1280
+            - 1280
+          type: RandomResize
+        - crop_size:
+            - 640
+            - 640
+          type: RandomCrop
+        - type: YOLOXHSVRandomAug
+        - prob: 0.5
+          type: RandomFlip
+        - pad_val:
+            img:
+              - 114
+              - 114
+              - 114
+          size:
+            - 640
+            - 640
+          type: Pad
+        - img_scale:
+            - 640
+            - 640
+          max_cached_images: 10
+          pad_val:
+            - 114
+            - 114
+            - 114
+          prob: 0.5
+          random_pop: false
+          ratio_range:
+            - 1.0
+            - 1.0
+          type: CachedMixUp
+        - type: PackDetInputs
     val:
       batch_size: 5
       transforms:
-      - backend_args: null
-        type: LoadImageFromFile
-      - keep_ratio: true
-        scale:
-        - 640
-        - 640
-        type: Resize
-      - pad_val:
-          img:
-          - 114
-          - 114
-          - 114
-        size:
-        - 640
-        - 640
-        type: Pad
-      - type: LoadAnnotations
-        with_bbox: true
-      - meta_keys:
-        - img_id
-        - img_path
-        - ori_shape
-        - img_shape
-        - scale_factor
-        type: PackDetInputs
+        - backend_args: null
+          type: LoadImageFromFile
+        - keep_ratio: true
+          scale:
+            - 640
+            - 640
+          type: Resize
+        - pad_val:
+            img:
+              - 114
+              - 114
+              - 114
+          size:
+            - 640
+            - 640
+          type: Pad
+        - type: LoadAnnotations
+          with_bbox: true
+        - meta_keys:
+            - img_id
+            - img_path
+            - ori_shape
+            - img_shape
+            - scale_factor
+          type: PackDetInputs
 
 model:
   otx_model:
@@ -113,9 +113,9 @@ model:
         anchor_generator:
           offset: 0
           strides:
-          - 8
-          - 16
-          - 32
+            - 8
+            - 16
+            - 32
           type: MlvlPointGenerator
         bbox_coder:
           type: DistancePointBBoxCoder
@@ -142,13 +142,13 @@ model:
         batch_augments: null
         bgr_to_rgb: false
         mean:
-        - 103.53
-        - 116.28
-        - 123.675
+          - 103.53
+          - 116.28
+          - 123.675
         std:
-        - 57.375
-        - 57.12
-        - 58.395
+          - 57.375
+          - 57.12
+          - 58.395
         type: DetDataPreprocessor
       neck:
         act_cfg:
@@ -156,9 +156,9 @@ model:
           type: SiLU
         expand_ratio: 0.5
         in_channels:
-        - 96
-        - 192
-        - 384
+          - 96
+          - 192
+          - 384
         norm_cfg:
           type: SyncBN
         num_csp_blocks: 1

@@ -6,12 +6,7 @@ from omegaconf import DictConfig
 from otx.v2_single_engine.types.task import OTXTaskType
 
 from .data_module import DataModuleConfig
-
-# @dataclass
-# class OptimizerConfig:
-#     type: str
-#     lr: float
-#     weight_decay: float
+from .model import ModelConfig
 
 
 @dataclass
@@ -36,15 +31,6 @@ class TrainerConfig(DictConfig):
 
 
 @dataclass
-class ModelConfig(DictConfig):
-    _target_: str
-    optimizer: dict
-    scheduler: dict
-    otx_model: dict
-    compile: bool
-
-
-@dataclass
 class TrainConfig:
     base: BasicConfig
     data: DataModuleConfig
@@ -52,6 +38,7 @@ class TrainConfig:
     model: ModelConfig
     recipe: str | None
     train: bool
+    test: bool
 
 
 def register_configs():

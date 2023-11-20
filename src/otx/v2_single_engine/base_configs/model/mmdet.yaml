@@ -1,9 +1,9 @@
-_target_: otx.v2_single_engine.model.detection.mmdet.MMDetCompatibleLitModule
+_target_: otx.v2_single_engine.model.detection.base.OTXDetectionLitModule
 
 optimizer:
   _target_: torch.optim.Adam
   _partial_: true
-  lr: 0.001
+  lr: 0.1
   weight_decay: 0.0
 
 scheduler:
@@ -12,6 +12,11 @@ scheduler:
   mode: min
   factor: 0.1
   patience: 10
+
+# scheduler:
+#   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+#   _partial_: true
+#   T_max: ${trainer.max_epochs}
 
 otx_model:
   _target_: otx.v2_single_engine.model.detection.mmdet.MMDetCompatibleModel

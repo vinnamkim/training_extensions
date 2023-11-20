@@ -2,15 +2,15 @@
 # Since the task determines the input and output format of the model, we can define the following abstract model class for each task.
 # At this time, what OTX model developers need to do is very clear: Implement the two abstract functions.
 
-from abc import abstractmethod
-from typing import Any, Dict
 
 import torch
-from torch import Tensor, nn
-
-from otx.v2_single_engine.data_entity.detection import DetBatchEntity
-from otx.v2_single_engine.model.base import OTXModel, OTXLitModule
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
+
+from otx.v2_single_engine.data_entity.detection import (
+    DetBatchDataEntity,
+    DetBatchPredEntity,
+)
+from otx.v2_single_engine.model.base import OTXLitModule, OTXModel
 
 
 class OTXDetectionModel(OTXModel):
@@ -30,16 +30,16 @@ class OTXDetectionLitModule(OTXLitModule):
         self.val_metric = MeanAveragePrecision()
         self.test_metric = MeanAveragePrecision()
 
-    def on_validation_start(self) -> None:
+    def on_validation_epoch_start(self) -> None:
         self.val_metric.reset()
 
-    def on_test_start(self) -> None:
+    def on_test_epoch_start(self) -> None:
         self.test_metric.reset()
 
-    def on_validation_end(self) -> None:
+    def on_validation_epoch_end(self) -> None:
         self._log_metrics(self.val_metric, "val")
 
-    def on_test_end(self) -> None:
+    def on_test_epoch_end(self) -> None:
         self._log_metrics(self.test_metric, "test")
 
     def _log_metrics(self, meter: MeanAveragePrecision, key: str):
@@ -52,7 +52,7 @@ class OTXDetectionLitModule(OTXLitModule):
                 prog_bar=True,
             )
 
-    def validation_step(self, inputs: DetBatchEntity, batch_idx: int) -> None:
+    def validation_step(self, inputs: DetBatchDataEntity, batch_idx: int) -> None:
         """Perform a single validation step on a batch of data from the validation set.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target
@@ -61,27 +61,46 @@ class OTXDetectionLitModule(OTXLitModule):
         """
         preds = self.model(inputs)
 
-        # update and log metrics
-        self.val_loss(loss)
-        self.val_acc(preds, targets)
-        self.log("val/loss", self.val_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val/acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
+        if not isinstance(preds, DetBatchPredEntity):
+            raise TypeError(preds)
 
-    def test_step(
-        self, batch: tuple[torch.Tensor, torch.Tensor], batch_idx: int
-    ) -> None:
+        self.val_metric.update(**self.convert_for_metric(preds, inputs))
+
+    def convert_for_metric(self, preds: DetBatchPredEntity, inputs: DetBatchDataEntity):
+        return {
+            "preds": [
+                {
+                    "boxes": bboxes.data,
+                    "scores": scores,
+                    "labels": labels,
+                }
+                for bboxes, scores, labels in zip(
+                    preds.bboxes, preds.scores, preds.labels,
+                )
+            ],
+            "target": [
+                {
+                    "boxes": bboxes.data,
+                    "labels": labels,
+                }
+                for bboxes, labels in zip(inputs.bboxes, inputs.labels)
+            ],
+        }
+
+    def test_step(self, inputs: DetBatchDataEntity, batch_idx: int) -> None:
         """Perform a single test step on a batch of data from the test set.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target
             labels.
         :param batch_idx: The index of the current batch.
         """
-        loss, preds, targets = self.model_step(batch)
+        preds = self.model(inputs)
 
-        # update and log metrics
-        self.test_loss(loss)
-        self.test_acc(preds, targets)
-        self.log(
-            "test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True
-        )
-        self.log("test/acc", self.test_acc, on_step=False, on_epoch=True, prog_bar=True)
+        if not isinstance(preds, DetBatchPredEntity):
+            raise TypeError(preds)
+
+        self.test_metric.update(**self.convert_for_metric(preds, inputs))
+
+    @property
+    def lr_scheduler_monitor_key(self) -> str:
+        return "train/loss"
