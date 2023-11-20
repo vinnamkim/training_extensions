@@ -10,7 +10,7 @@ from torchvision import tv_tensors
 
 from otx.v2_single_engine.data_entity.detection import DetBatchPredEntity
 from otx.v2_single_engine.types.task import OTXTaskType
-from otx.v2_single_engine.utils.config import convert_conf_to_mmconfig_dict
+from otx.v2_single_engine.utils.config import convert_conf_to_mmconfig_dict, to_list
 
 # This is an example for MMDetection models
 # In this way, we can easily import some models developed from the MM community
@@ -25,11 +25,7 @@ if TYPE_CHECKING:
 
 class MMDetCompatibleModel(OTXDetectionModel):
     def __init__(self, config: DictConfig):
-        self.config = (
-            convert_conf_to_mmconfig_dict(config)
-            if isinstance(config, DictConfig)
-            else config
-        )
+        self.config = config
         super().__init__()
 
     def create_model(self) -> nn.Module:
@@ -42,7 +38,12 @@ class MMDetCompatibleModel(OTXDetectionModel):
         det = MODELS.get("DetDataPreprocessor")
         MMENGINE_MODELS.register_module(module=det)
 
-        return MODELS.build(self.config)
+        try:
+            model = MODELS.build(convert_conf_to_mmconfig_dict(self.config, to="tuple"))
+        except AssertionError:
+            model = MODELS.build(convert_conf_to_mmconfig_dict(self.config, to="list"))
+
+        return model
 
     def customize_inputs(self, entity: DetBatchDataEntity) -> dict[str, Any]:
         from mmdet.structures import DetDataSample

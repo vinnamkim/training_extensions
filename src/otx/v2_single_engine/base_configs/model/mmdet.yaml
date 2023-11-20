@@ -3,7 +3,7 @@ _target_: otx.v2_single_engine.model.detection.base.OTXDetectionLitModule
 optimizer:
   _target_: torch.optim.Adam
   _partial_: true
-  lr: 0.1
+  lr: 1e-3
   weight_decay: 0.0
 
 scheduler:
