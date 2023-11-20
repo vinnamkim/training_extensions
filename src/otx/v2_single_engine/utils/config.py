@@ -26,3 +26,12 @@ def convert_conf_to_mmconfig_dict(cfg: DictConfig) -> MMConfig:
         return dict_
 
     return MMConfig(cfg_dict=to_tuple(dict_cfg))
+
+
+def mmconfig_dict_to_dict(obj):
+    if isinstance(obj, list):
+        return [mmconfig_dict_to_dict(x) for x in obj]
+    elif hasattr(obj, "to_dict"):
+        return {k: mmconfig_dict_to_dict(v) for k, v in obj.to_dict().items()}
+
+    return obj

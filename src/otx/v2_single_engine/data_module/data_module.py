@@ -12,7 +12,10 @@ from otx.v2_single_engine.types.task import OTXTaskType
 from .factory import OTXDatasetFactory
 
 if TYPE_CHECKING:
-    from otx.v2_single_engine.config_structs.data_module import DataModuleConfig, SubsetConfig
+    from otx.v2_single_engine.config_structs.data_module import (
+        DataModuleConfig,
+        SubsetConfig,
+    )
 
     from .dataset.base import OTXDataset
 
@@ -25,6 +28,7 @@ class OTXDataModule(LightningDataModule):
         self.prepare_data_per_node = True
 
     def prepare_data(self):
+        self._prepare_data = True
         dataset = DmDataset.import_from(
             self.config.data_root,
             format=self.config.format,
@@ -40,18 +44,19 @@ class OTXDataModule(LightningDataModule):
                     dm_subset=dm_subset,
                     config=config,
                 )
-            except ValueError:
+                log.info(f"Add name: {name}, self.subsets: {self.subsets}")
+            except KeyError:
                 log.warning(f"{name} has no config. Skip it")
 
     def _get_config(self, subset: str) -> SubsetConfig:
         if (config := self.config.subsets.get(subset)) is None:
-            raise ValueError(f"Config has no '{subset}' subset configuration")
+            raise KeyError(f"Config has no '{subset}' subset configuration")
 
         return config
 
     def _get_dataset(self, subset: str) -> OTXDataset:
         if (dataset := self.subsets.get(subset)) is None:
-            raise ValueError(
+            raise KeyError(
                 f"Dataset has no '{subset}'. Available subsets = {self.subsets.keys()}",
             )
         return dataset

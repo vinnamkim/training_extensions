@@ -1,14 +1,21 @@
 import pytest
 from otx.v2_single_engine.types.task import OTXTaskType
-from otx.v2_single_engine.config_structs import DataModuleConfig
-from otx.v2_single_engine.config_structs.data_module import SubsetConfig
+from otx.v2_single_engine.config_structs.data_module import (
+    DataModuleConfig,
+    SubsetConfig,
+)
 import os.path as osp
 from otx.v2_single_engine.data_module import OTXDataModule
+from otx.v2_single_engine.utils.config import mmconfig_dict_to_dict
+from omegaconf import DictConfig
 
 
 @pytest.fixture
 def fxt_mmcv_det_transform_config(fxt_rtmdet_tiny_config):
-    return fxt_rtmdet_tiny_config.train_pipeline
+    return [
+        DictConfig(cfg)
+        for cfg in mmconfig_dict_to_dict(fxt_rtmdet_tiny_config.train_pipeline)
+    ]
 
 
 @pytest.fixture

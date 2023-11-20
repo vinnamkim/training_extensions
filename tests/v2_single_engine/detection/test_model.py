@@ -2,8 +2,10 @@ import pytest
 from otx.v2_single_engine.data_entity.detection import DetBatchDataEntity
 from otx.v2_single_engine.data_module import OTXDataModule
 from otx.v2_single_engine.types.task import OTXTaskType
-from otx.v2_single_engine.config_structs import DataModuleConfig
-from otx.v2_single_engine.config_structs.data_module import SubsetConfig
+from otx.v2_single_engine.config_structs.data_module import (
+    DataModuleConfig,
+    SubsetConfig,
+)
 from otx.v2_single_engine.model.detection.mmdet import MMDetCompatibleModel
 import os.path as osp
 
@@ -22,5 +24,6 @@ class TestOTXModel:
     ):
         dataloader = fxt_datamodule.train_dataloader()
         for inputs in dataloader:
-            outputs = fxt_model.forward_train(inputs)
+            outputs = fxt_model(inputs)
+            assert isinstance(outputs, dict)
             break
