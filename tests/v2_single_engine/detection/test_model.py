@@ -1,5 +1,5 @@
 import pytest
-from otx.v2_single_engine.data_entity.detection import DetBatchEntity
+from otx.v2_single_engine.data_entity.detection import DetBatchDataEntity
 from otx.v2_single_engine.data_module import OTXDataModule
 from otx.v2_single_engine.types.task import OTXTaskType
 from otx.v2_single_engine.config_structs import DataModuleConfig
