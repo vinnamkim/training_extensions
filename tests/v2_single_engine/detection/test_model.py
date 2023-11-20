@@ -8,12 +8,14 @@ from otx.v2_single_engine.config_structs.data_module import (
 )
 from otx.v2_single_engine.model.detection.mmdet import MMDetCompatibleModel
 import os.path as osp
+from otx.v2_single_engine.utils.config import mmconfig_dict_to_dict
+from omegaconf import DictConfig
 
 
 class TestOTXModel:
     @pytest.fixture
     def fxt_rtmdet_tiny_model_config(self, fxt_rtmdet_tiny_config):
-        return fxt_rtmdet_tiny_config.model
+        return DictConfig(mmconfig_dict_to_dict(fxt_rtmdet_tiny_config.model))
 
     @pytest.fixture
     def fxt_model(self, fxt_rtmdet_tiny_model_config) -> MMDetCompatibleModel:

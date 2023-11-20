@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from otx.v2_single_engine.config_structs.data_module import SubsetConfig
 
 
-class TransformerFactory:
+class TransformLibFactory:
     @classmethod
     def generate(cls, config: SubsetConfig):
         if config.transform_lib_type == TransformLibType.MMCV:
@@ -37,7 +37,7 @@ class OTXDatasetFactory:
         dm_subset: DatasetSubset,
         config: SubsetConfig,
     ) -> OTXDataset:
-        transforms = TransformerFactory.generate(config)
+        transforms = TransformLibFactory.generate(config)
 
         if task == OTXTaskType.DETECTION:
             from .dataset.detection import OTXDetectionDataset
@@ -47,4 +47,4 @@ class OTXDatasetFactory:
         raise NotImplementedError(task)
 
 
-__all__ = [TransformerFactory, OTXDatasetFactory]
+__all__ = [TransformLibFactory, OTXDatasetFactory]
