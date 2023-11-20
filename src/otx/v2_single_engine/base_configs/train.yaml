@@ -1,14 +1,14 @@
 defaults:
-- base_config
-- base: default
-- data: default
-- trainer: default
-- model: mmdet
-- _self_
+  - base_config
+  - base: default
+  - data: default
+  - trainer: default
+  - model: mmdet
+  - _self_
 
 train: true
 test: true
 
 hydra:
   searchpath:
-  - pkg://otx.v2_single_engine
+    - pkg://otx.v2_single_engine

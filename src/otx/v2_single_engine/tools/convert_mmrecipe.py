@@ -1,8 +1,10 @@
 import os
-from otx.v2_single_engine.utils.config import mmconfig_dict_to_dict
 from argparse import ArgumentParser
+
 from mmengine.config import Config
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import OmegaConf
+
+from otx.v2_single_engine.utils.config import mmconfig_dict_to_dict
 
 parser = ArgumentParser()
 parser.add_argument("-n", "--recipe-name", type=str, required=True)
@@ -41,7 +43,7 @@ if __name__ == "__main__":
                 },
             },
             "model": {"otx_model": {"config": config["model"]}},
-        }
+        },
     )
 
     print(omega_conf)

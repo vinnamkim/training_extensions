@@ -10,7 +10,7 @@ from torchvision import tv_tensors
 
 from otx.v2_single_engine.data_entity.detection import DetBatchPredEntity
 from otx.v2_single_engine.types.task import OTXTaskType
-from otx.v2_single_engine.utils.config import convert_conf_to_mmconfig_dict, to_list
+from otx.v2_single_engine.utils.config import convert_conf_to_mmconfig_dict
 
 # This is an example for MMDetection models
 # In this way, we can easily import some models developed from the MM community

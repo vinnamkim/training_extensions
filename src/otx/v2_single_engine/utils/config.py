@@ -37,7 +37,7 @@ def to_list(dict_: dict) -> dict:
 
 
 def convert_conf_to_mmconfig_dict(
-    cfg: DictConfig, to: Literal["tuple", "list"] = "tuple"
+    cfg: DictConfig, to: Literal["tuple", "list"] = "tuple",
 ) -> MMConfig:
     dict_cfg = OmegaConf.to_container(cfg)
 
