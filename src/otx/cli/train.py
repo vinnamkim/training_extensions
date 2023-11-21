@@ -28,7 +28,6 @@ def main(cfg: DictConfig) -> float | None:
 
     # # return optimized metric
     # return metric_value
-    print(type(cfg.task))
 
 
 if __name__ == "__main__":
