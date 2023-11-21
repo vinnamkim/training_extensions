@@ -1,14 +1,7 @@
 import pytest
-from otx.v2_single_engine.data_entity.detection import DetBatchDataEntity
-from otx.v2_single_engine.data_module import OTXDataModule
-from otx.v2_single_engine.types.task import OTXTaskType
-from otx.v2_single_engine.config_structs.data_module import (
-    DataModuleConfig,
-    SubsetConfig,
-)
-from otx.v2_single_engine.model.detection.mmdet import MMDetCompatibleModel
-import os.path as osp
-from otx.v2_single_engine.utils.config import mmconfig_dict_to_dict
+from otx.core.data.module import OTXDataModule
+from otx.core.model.entity.detection import MMDetCompatibleModel
+from otx.core.utils.config import mmconfig_dict_to_dict
 from omegaconf import DictConfig
 
 

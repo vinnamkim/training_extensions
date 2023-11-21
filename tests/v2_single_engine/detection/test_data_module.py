@@ -1,5 +1,5 @@
-from otx.v2_single_engine.data_entity.detection import DetBatchDataEntity
-from otx.v2_single_engine.data_module import OTXDataModule
+from otx.core.data.entity.detection import DetBatchDataEntity
+from otx.core.data.module import OTXDataModule
 
 
 class TestOTXDataModule:

@@ -1,12 +1,12 @@
 import pytest
-from otx.v2_single_engine.types.task import OTXTaskType
-from otx.v2_single_engine.config_structs.data_module import (
+from otx.core.types.task import OTXTaskType
+from otx.core.config.data import (
     DataModuleConfig,
     SubsetConfig,
 )
 import os.path as osp
-from otx.v2_single_engine.data_module import OTXDataModule
-from otx.v2_single_engine.utils.config import mmconfig_dict_to_dict
+from otx.core.data.module import OTXDataModule
+from otx.core.utils.config import mmconfig_dict_to_dict
 from omegaconf import DictConfig
 
 
