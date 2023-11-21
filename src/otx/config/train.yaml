@@ -4,6 +4,7 @@ defaults:
 - data: default
 - trainer: default
 - model: mmdet
+- logger: csv
 - _self_
 
 train: true

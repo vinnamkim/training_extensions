@@ -11,6 +11,7 @@ class TrainConfig:
     data: DataModuleConfig
     trainer: TrainerConfig
     model: ModelConfig
+    logger: dict
     recipe: str | None
     train: bool
     test: bool

@@ -22,10 +22,12 @@ if TYPE_CHECKING:
 
 class OTXDataModule(LightningDataModule):
     def __init__(self, task: OTXTaskType, config: DataModuleConfig):
+        super().__init__()
         self.task = task
         self.config = config
         self.subsets: dict[str, OTXDataset] = {}
         self.prepare_data_per_node = True
+        self.save_hyperparameters()
 
     def prepare_data(self):
         self._prepare_data = True
