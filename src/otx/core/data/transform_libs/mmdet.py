@@ -62,7 +62,6 @@ class PackDetInputs(MMDetPackDetInputs):
 
         return DetDataEntity(
             image=image,
-            image_type=ImageType.TV_IMAGE,
             img_info=ImageInfo(
                 img_idx=0,
                 img_shape=img_shape,

@@ -41,7 +41,6 @@ class OTXDataEntity:
     which can be go through the input preprocessing tranforms.
 
     :param task: OTX task definition
-    :param image_type: Type of the image
     :param image: Image tensor which can have different type according to `image_type`
         1) `image_type=ImageType.NUMPY`: H x W x C numpy image tensor
         2) `image_type=ImageType.TV_IMAGE`: C x H x W torchvision image tensor
@@ -49,9 +48,17 @@ class OTXDataEntity:
     """
 
     task: OTXTaskType
-    image_type: ImageType
     image: np.ndarray | tv_tensors.Image
     img_info: ImageInfo
+
+    @property
+    def image_type(self) -> ImageType:
+        if isinstance(self.image, np.ndarray):
+            return ImageType.NUMPY
+        if isinstance(self.image, tv_tensors.Image):
+            return ImageType.TV_IMAGE
+
+        raise TypeError(self.image)
 
 
 @dataclass(kw_only=True)

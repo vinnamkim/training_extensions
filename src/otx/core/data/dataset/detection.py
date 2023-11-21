@@ -38,7 +38,6 @@ class OTXDetectionDataset(OTXDataset):
 
         entity = DetDataEntity(
             task=OTXTaskType.DETECTION,
-            image_type=ImageType.NUMPY,
             image=img_data,
             img_info=ImageInfo(
                 img_idx=index,
