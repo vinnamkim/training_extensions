@@ -12,6 +12,8 @@ from .dataset.base import OTXDataset
 if TYPE_CHECKING:
     from otx.core.config.data import SubsetConfig
 
+__all__ = ["TransformLibFactory", "OTXDatasetFactory"]
+
 
 class TransformLibFactory:
     @classmethod
@@ -45,6 +47,3 @@ class OTXDatasetFactory:
             return OTXDetectionDataset(dm_subset, transforms)
 
         raise NotImplementedError(task)
-
-
-__all__ = [TransformLibFactory, OTXDatasetFactory]

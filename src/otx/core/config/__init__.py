@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 from .data import DataModuleConfig
 from .model import ModelConfig
 from .base import BaseConfig
@@ -12,12 +13,13 @@ class TrainConfig:
     trainer: TrainerConfig
     model: ModelConfig
     logger: dict
-    recipe: str | None
+    recipe: Optional[str]
     train: bool
     test: bool
+    callbacks: list = field(default_factory=list)
 
 
-def register_configs():
+def register_configs() -> None:
     from hydra.core.config_store import ConfigStore
 
     cs = ConfigStore.instance()

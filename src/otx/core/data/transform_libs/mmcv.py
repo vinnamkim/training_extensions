@@ -11,6 +11,7 @@ from otx.core.utils.config import convert_conf_to_mmconfig_dict
 
 if TYPE_CHECKING:
     from otx.core.config.data import SubsetConfig
+    from mmengine.registry import Registry
 
 
 @TRANSFORMS.register_module(force=True)
@@ -33,7 +34,7 @@ class LoadImageFromFile(MMCVLoadImageFromFile):
 
 class MMCVTransformLib:
     @classmethod
-    def get_builder(cls):
+    def get_builder(cls) -> Registry:
         """Transform builder obtained from MMCV"""
         return TRANSFORMS
 

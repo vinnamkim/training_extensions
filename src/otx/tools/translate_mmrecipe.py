@@ -1,5 +1,6 @@
-import os
+"""Python script to translate MMx recipe to OTX YAML recipe file."""
 from argparse import ArgumentParser
+from pathlib import Path
 
 from mmengine.config import Config
 from omegaconf import OmegaConf
@@ -8,8 +9,8 @@ from otx.core.utils.config import mmconfig_dict_to_dict
 
 parser = ArgumentParser()
 parser.add_argument("-n", "--recipe-name", type=str, required=True)
-parser.add_argument("-o", "--output-dir", type=str, required=True)
-parser.add_argument("-i", "--input-path", type=str, required=True)
+parser.add_argument("-o", "--output-dir", type=Path, required=True)
+parser.add_argument("-i", "--input-path", type=Path, required=True)
 
 override = parser.add_argument_group("override")
 override.add_argument("--base", type=str, default="detection")
@@ -47,7 +48,7 @@ if __name__ == "__main__":
     )
 
     print(omega_conf)
-    output_path = os.path.join(args.output_dir, args.recipe_name + ".yaml")
-    with open(output_path, "w") as fp:
+    output_path: Path = args.output_dir / f"{args.recipe_name}.yaml"
+    with output_path.open("w") as fp:
         fp.write("# @package _global_\n")
         OmegaConf.save(omega_conf, fp)

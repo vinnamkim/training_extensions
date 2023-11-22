@@ -15,7 +15,7 @@ repos:
     rev: "v1.6.1"
     hooks:
       - id: mypy
-        files: '^(src/otx/v2)/.*\.py'
+        files: '^(src/otx)/.*\.py'
         additional_dependencies:
           [
             types-PyYAML,

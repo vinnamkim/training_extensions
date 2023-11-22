@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum, auto
-
+from typing import Any, Dict, Type, TypeVar, List, Generic
 import numpy as np
 from torch import Tensor
 from torchvision import tv_tensors
@@ -10,7 +10,7 @@ from torchvision import tv_tensors
 from otx.core.types.task import OTXTaskType
 
 
-@dataclass()
+@dataclass
 class ImageInfo:
     """Meta info for image
 
@@ -33,7 +33,13 @@ class ImageType(IntEnum):
     TV_IMAGE = auto()
 
 
-@dataclass(kw_only=True)
+T_OTXDataEntity = TypeVar(
+    "T_OTXDataEntity",
+    bound="OTXDataEntity",
+)
+
+
+@dataclass
 class OTXDataEntity:
     """Base data entity for OTX.
 
@@ -47,9 +53,13 @@ class OTXDataEntity:
     :param imgs_info: Meta information for images
     """
 
-    task: OTXTaskType
     image: np.ndarray | tv_tensors.Image
     img_info: ImageInfo
+
+    @property
+    def task(self) -> OTXTaskType:
+        """OTX Task type definition"""
+        raise RuntimeError("OTXTaskType is not defined.")
 
     @property
     def image_type(self) -> ImageType:
@@ -61,30 +71,39 @@ class OTXDataEntity:
         raise TypeError(self.image)
 
 
-@dataclass(kw_only=True)
+@dataclass
 class OTXPredEntity(OTXDataEntity):
     score: np.ndarray | Tensor
 
 
-@dataclass(kw_only=True)
-class OTXBatchDataEntity:
+T_OTXBatchDataEntity = TypeVar(
+    "T_OTXBatchDataEntity",
+    bound="OTXBatchDataEntity",
+)
+
+
+@dataclass
+class OTXBatchDataEntity(Generic[T_OTXDataEntity]):
     """Base Batch data entity for OTX
 
     This entity is the output of PyTorch DataLoader,
     which is the direct input of OTXModel.
 
-    :param task: OTX task definition
     :param images: List of B numpy image tensors (C x H x W)
     :param imgs_info: Meta information for images
     """
 
-    task: OTXTaskType
     batch_size: int
     images: list[tv_tensors.Image]
     imgs_info: list[ImageInfo]
 
+    @property
+    def task(self) -> OTXTaskType:
+        """OTX Task type definition"""
+        raise RuntimeError("OTXTaskType is not defined.")
+
     @classmethod
-    def collate_fn(cls, entities: list[OTXDataEntity]) -> OTXBatchDataEntity:
+    def collate_fn(cls, entities: List[T_OTXDataEntity]) -> OTXBatchDataEntity:
         if (batch_size := len(entities)) == 0:
             raise RuntimeError("collate_fn() input should have > 0 entities")
 
@@ -99,17 +118,28 @@ class OTXBatchDataEntity:
             )
 
         return OTXBatchDataEntity(
-            task=task,
             batch_size=batch_size,
             images=[entity.image for entity in entities],
             imgs_info=[entity.img_info for entity in entities],
         )
 
 
-@dataclass(kw_only=True)
+T_OTXBatchPredEntity = TypeVar(
+    "T_OTXBatchPredEntity",
+    bound="OTXBatchPredEntity",
+)
+
+
+@dataclass
 class OTXBatchPredEntity(OTXBatchDataEntity):
     scores: list[np.ndarray] | list[Tensor]
 
 
-class OTXBatchLossEntity(dict[str, Tensor]):
+T_OTXBatchLossEntity = TypeVar(
+    "T_OTXBatchLossEntity",
+    bound="OTXBatchLossEntity",
+)
+
+
+class OTXBatchLossEntity(Dict[str, Tensor]):
     pass

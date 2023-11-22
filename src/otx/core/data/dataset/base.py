@@ -1,19 +1,19 @@
 from abc import abstractmethod
 from collections.abc import Iterable
-from typing import Callable
+from typing import Callable, List, Optional, Union, Generic
 
 import numpy as np
 from datumaro import DatasetSubset
 from torch.utils.data import Dataset
 
-from otx.core.data.entity.base import OTXDataEntity
+from otx.core.data.entity.base import T_OTXDataEntity
 
 
-class OTXDataset(Dataset):
+class OTXDataset(Dataset, Generic[T_OTXDataEntity]):
     def __init__(
         self,
         dm_subset: DatasetSubset,
-        transforms: Callable | list[Callable],
+        transforms: Union[Callable, List[Callable]],
         max_refetch: int = 1000,
     ) -> None:
         self.dm_subset = dm_subset
@@ -28,7 +28,7 @@ class OTXDataset(Dataset):
         idx = np.random.randint(0, len(self))
         return idx
 
-    def apply_transforms(self, entity: OTXDataEntity) -> OTXDataEntity | None:
+    def apply_transforms(self, entity: T_OTXDataEntity) -> Optional[T_OTXDataEntity]:
         if callable(self.transforms):
             return self.transforms(entity)
         if isinstance(self.transforms, Iterable):
@@ -36,7 +36,10 @@ class OTXDataset(Dataset):
 
         raise TypeError(self.transforms)
 
-    def _mmengine_transforms(self, item: OTXDataEntity) -> OTXDataEntity | None:
+    def _mmengine_transforms(self, item: T_OTXDataEntity) -> Optional[T_OTXDataEntity]:
+        if not isinstance(self.transforms, list):
+            raise TypeError("self.transforms should be a list of callables")
+
         results = item
         for transform in self.transforms:
             results = transform(results)
@@ -47,7 +50,7 @@ class OTXDataset(Dataset):
 
         return results
 
-    def __getitem__(self, index: int) -> OTXDataEntity:
+    def __getitem__(self, index: int) -> T_OTXDataEntity:
         for _ in range(self.max_refetch):
             results = self._get_item_impl(index)
 
@@ -59,10 +62,10 @@ class OTXDataset(Dataset):
         raise RuntimeError(f"Reach the maximum refetch number ({self.max_refetch})")
 
     @abstractmethod
-    def _get_item_impl(self, idx: int) -> OTXDataEntity:
+    def _get_item_impl(self, idx: int) -> Optional[T_OTXDataEntity]:
         pass
 
     @property
     @abstractmethod
-    def collate_fn(self):
+    def collate_fn(self) -> Callable:
         pass

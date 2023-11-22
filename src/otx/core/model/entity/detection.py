@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Dict, Union
 
 from omegaconf import DictConfig
 from torchvision import tv_tensors
 
-from otx.core.data.entity.detection import DetBatchPredEntity
+from otx.core.data.entity.detection import DetBatchDataEntity, DetBatchPredEntity
 from otx.core.model.entity.base import OTXModel
 from otx.core.types.task import OTXTaskType
 from otx.core.utils.config import convert_conf_to_mmconfig_dict
-
+from otx.core.data.entity.base import OTXBatchLossEntity
 
 if TYPE_CHECKING:
     from mmdet.models.data_preprocessors import DetDataPreprocessor
@@ -18,14 +18,14 @@ if TYPE_CHECKING:
     from otx.core.data.entity.detection import DetBatchDataEntity
 
 
-class OTXDetectionModel(OTXModel):
+class OTXDetectionModel(OTXModel[DetBatchDataEntity, DetBatchPredEntity]):
     pass
 
 
 # This is an example for MMDetection models
 # In this way, we can easily import some models developed from the MM community
 class MMDetCompatibleModel(OTXDetectionModel):
-    def __init__(self, config: DictConfig):
+    def __init__(self, config: DictConfig) -> None:
         self.config = config
         super().__init__()
 
@@ -50,7 +50,7 @@ class MMDetCompatibleModel(OTXDetectionModel):
         from mmdet.structures import DetDataSample
         from mmengine.structures import InstanceData
 
-        mmdet_inputs = {}
+        mmdet_inputs: Dict[str, Any] = {}
 
         mmdet_inputs["inputs"] = entity.images  # B x C x H x W PyTorch tensor
         mmdet_inputs["data_samples"] = [
@@ -89,14 +89,19 @@ class MMDetCompatibleModel(OTXDetectionModel):
 
         return mmdet_inputs
 
-    def customize_outputs(self, outputs: Any) -> DetBatchPredEntity:
+    def customize_outputs(
+        self, outputs: Any
+    ) -> Union[DetBatchPredEntity, OTXBatchLossEntity]:
         from mmdet.structures import DetDataSample
 
         if self.training:
             if not isinstance(outputs, dict):
                 raise TypeError(outputs)
 
-            return {k: 1 / (len(v) + 1e-6) * sum(v) for k, v in outputs.items()}
+            losses = OTXBatchLossEntity()
+            for k, v in outputs.items():
+                losses[k] = sum(v)
+            return losses
 
         scores = []
         bboxes = []
@@ -117,7 +122,6 @@ class MMDetCompatibleModel(OTXDetectionModel):
             labels.append(output.pred_instances.labels)
 
         return DetBatchPredEntity(
-            task=OTXTaskType.DETECTION,
             batch_size=len(outputs),
             images=[],
             imgs_info=[],

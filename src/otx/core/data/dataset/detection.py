@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Optional
 
 import cv2
 import numpy as np
@@ -15,11 +15,11 @@ from otx.core.types.task import OTXTaskType
 from .base import OTXDataset
 
 
-class OTXDetectionDataset(OTXDataset):
+class OTXDetectionDataset(OTXDataset[DetDataEntity]):
     def __init__(self, dm_subset: DatasetSubset, transforms: list[Callable]) -> None:
         super().__init__(dm_subset, transforms)
 
-    def _get_item_impl(self, index: int) -> DetDataEntity | None:
+    def _get_item_impl(self, index: int) -> Optional[DetDataEntity]:
         item = self.dm_subset.get(id=self.ids[index], subset=self.dm_subset.name)
 
         img = item.media_as(Image)
@@ -37,7 +37,6 @@ class OTXDetectionDataset(OTXDataset):
         )
 
         entity = DetDataEntity(
-            task=OTXTaskType.DETECTION,
             image=img_data,
             img_info=ImageInfo(
                 img_idx=index,

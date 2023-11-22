@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, List, Dict
 
 from otx.core.types.transformer_libs import TransformLibType
 
@@ -10,11 +10,11 @@ class SubsetConfig:
     num_workers: int
 
     transform_lib_type: TransformLibType
-    transforms: list[dict[str, Any]]
+    transforms: List[Dict[str, Any]]
 
 
 @dataclass
 class DataModuleConfig:
     format: str
     data_root: str
-    subsets: dict[str, SubsetConfig]
+    subsets: Dict[str, SubsetConfig]

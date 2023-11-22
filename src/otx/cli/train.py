@@ -6,7 +6,7 @@ register_configs()
 
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="train.yaml")
-def main(cfg: DictConfig) -> float | None:
+def main(cfg: DictConfig) -> None:
     """Main entry point for training.
 
     :param cfg: DictConfig configuration composed by Hydra.
@@ -28,6 +28,7 @@ def main(cfg: DictConfig) -> float | None:
 
     # # return optimized metric
     # return metric_value
+    return None
 
 
 if __name__ == "__main__":

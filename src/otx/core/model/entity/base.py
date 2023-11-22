@@ -3,19 +3,20 @@
 # At this time, what OTX model developers need to do is very clear: Implement the two abstract functions.
 
 from abc import abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Union, Generic
 
 from torch import nn
 
 from otx.core.data.entity.base import (
-    OTXBatchDataEntity,
     OTXBatchLossEntity,
     OTXBatchPredEntity,
+    T_OTXBatchDataEntity,
+    T_OTXBatchPredEntity,
 )
 
 
-class OTXModel(nn.Module):
-    def __init__(self):
+class OTXModel(nn.Module, Generic[T_OTXBatchDataEntity, T_OTXBatchPredEntity]):
+    def __init__(self) -> None:
         super().__init__()
         self.model = self.create_model()
 
@@ -23,16 +24,18 @@ class OTXModel(nn.Module):
     def create_model(self) -> nn.Module:
         pass
 
-    def customize_inputs(self, inputs: OTXBatchDataEntity) -> Dict[str, Any]:
+    def customize_inputs(self, inputs: T_OTXBatchDataEntity) -> Dict[str, Any]:
         raise NotImplementedError
 
-    def customize_outputs(self, outputs: Any) -> OTXBatchPredEntity:
+    def customize_outputs(
+        self, outputs: Any
+    ) -> Union[T_OTXBatchPredEntity, OTXBatchLossEntity]:
         raise NotImplementedError
 
     def forward(
         self,
-        inputs: OTXBatchDataEntity,
-    ) -> OTXBatchLossEntity | OTXBatchPredEntity:
+        inputs: T_OTXBatchDataEntity,
+    ) -> Union[T_OTXBatchPredEntity, OTXBatchLossEntity]:
         # If customize_inputs is overrided
         outputs = (
             self.model(**self.customize_inputs(inputs))
