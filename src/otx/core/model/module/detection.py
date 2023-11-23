@@ -1,9 +1,6 @@
 import torch
-from torchmetrics.detection.mean_ap import MeanAveragePrecision
-from otx.core.model.module.base import OTXLitModule
+from torch import Tensor
 from otx.core.model.entity.detection import OTXDetectionModel
-
-import torch
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from otx.core.data.entity.detection import (
@@ -11,6 +8,8 @@ from otx.core.data.entity.detection import (
     DetBatchPredEntity,
 )
 from otx.core.model.module.base import OTXLitModule
+
+import logging as log
 
 
 class OTXDetectionLitModule(OTXLitModule):
@@ -41,6 +40,13 @@ class OTXDetectionLitModule(OTXLitModule):
     def _log_metrics(self, meter: MeanAveragePrecision, key: str):
         results = meter.compute()
         for k, v in results.items():
+            if not isinstance(v, Tensor):
+                log.debug("Cannot log item which is not Tensor")
+                continue
+            elif v.numel() != 1:
+                log.debug("Cannot log Tensor which is not scalar")
+                continue
+
             self.log(
                 f"{key}/{k}",
                 v,

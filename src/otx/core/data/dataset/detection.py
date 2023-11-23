@@ -24,6 +24,9 @@ class OTXDetectionDataset(OTXDataset[DetDataEntity]):
 
         img = item.media_as(Image)
         img_data = img.data
+        # TODO: This is a temporal approach
+        # There is an upcoming Datumaro patch here for this
+        # https://github.com/openvinotoolkit/datumaro/pull/1194
         if img_data.shape[-1] == 4:
             img_data = cv2.cvtColor(img_data, cv2.COLOR_BGRA2BGR)
         img_shape = img.size

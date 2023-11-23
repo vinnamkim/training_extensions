@@ -4,7 +4,7 @@ import logging as log
 from typing import TYPE_CHECKING
 
 from datumaro import Dataset as DmDataset
-from pytorch_lightning import LightningDataModule
+from lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
 from otx.core.types.task import OTXTaskType
