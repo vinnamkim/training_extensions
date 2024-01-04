@@ -4,8 +4,6 @@
 """Class definition for instance segmentation lightning module used in OTX."""
 from __future__ import annotations
 
-import logging as log
-
 import torch
 from torch import Tensor
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
@@ -54,21 +52,8 @@ class OTXInstanceSegLitModule(OTXLitModule):
         self.test_metric.reset()
 
     def _log_metrics(self, meter: MeanAveragePrecision, subset_name: str) -> None:
-        results = meter.compute()
-        for metric, value in results.items():
-            if not isinstance(value, Tensor):
-                log.debug("Cannot log item which is not Tensor")
-                continue
-            if value.numel() != 1:
-                log.debug("Cannot log Tensor which is not scalar")
-                continue
-
-            self.log(
-                f"{subset_name}/{metric}",
-                value,
-                sync_dist=True,
-                prog_bar=True,
-            )
+        metrics = self._append_stage_key_prefix(metrics=meter.compute(), stage_key=subset_name)
+        self.log_dict(metrics, sync_dist=True, prog_bar=True)
 
     def validation_step(self, inputs: InstanceSegBatchDataEntity, batch_idx: int) -> None:
         """Perform a single validation step on a batch of data from the validation set.

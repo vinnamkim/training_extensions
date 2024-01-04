@@ -4,6 +4,7 @@
 """Class definition for base lightning module used in OTX."""
 from __future__ import annotations
 
+import logging as log
 from typing import Any
 
 import torch
@@ -109,3 +110,19 @@ class OTXLitModule(LightningModule):
     def lr_scheduler_monitor_key(self) -> str:
         """Metric name that the learning rate scheduler monitor."""
         return "val/loss"
+
+    def _append_stage_key_prefix(self, metrics: dict[str, Tensor], stage_key: str) -> dict[str, Tensor]:
+        """Append stage key prefix to metric keys.
+
+        Args:
+            metrics: Dictionary including metrics
+            stage_key: String key to append to each metric key as a prefix
+        """
+        renamed = {}
+        for metric_key, value in metrics.items():
+            if value.numel() != 1:
+                log.debug("Cannot log Tensor which is not scalar")
+                continue
+            renamed[f"{stage_key}/{metric_key}"] = value.float()
+
+        return renamed

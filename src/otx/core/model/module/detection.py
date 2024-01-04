@@ -4,10 +4,8 @@
 """Class definition for detection lightning module used in OTX."""
 from __future__ import annotations
 
-import logging as log
+from typing import TYPE_CHECKING
 
-import torch
-from torch import Tensor
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 from otx.core.data.entity.detection import (
@@ -16,6 +14,10 @@ from otx.core.data.entity.detection import (
 )
 from otx.core.model.entity.detection import OTXDetectionModel
 from otx.core.model.module.base import OTXLitModule
+
+if TYPE_CHECKING:
+    import torch
+    from torch import Tensor
 
 
 class OTXDetectionLitModule(OTXLitModule):
@@ -50,21 +52,8 @@ class OTXDetectionLitModule(OTXLitModule):
         self._log_metrics(self.test_metric, "test")
 
     def _log_metrics(self, meter: MeanAveragePrecision, key: str) -> None:
-        results = meter.compute()
-        for k, v in results.items():
-            if not isinstance(v, Tensor):
-                log.debug("Cannot log item which is not Tensor")
-                continue
-            if v.numel() != 1:
-                log.debug("Cannot log Tensor which is not scalar")
-                continue
-
-            self.log(
-                f"{key}/{k}",
-                v,
-                sync_dist=True,
-                prog_bar=True,
-            )
+        metrics = self._append_stage_key_prefix(metrics=meter.compute(), stage_key=key)
+        self.log_dict(metrics, sync_dist=True, prog_bar=True)
 
     def validation_step(self, inputs: DetBatchDataEntity, batch_idx: int) -> None:
         """Perform a single validation step on a batch of data from the validation set.
