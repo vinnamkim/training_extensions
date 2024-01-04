@@ -70,7 +70,7 @@ class MMPretrainMulticlassClsModel(OTXMulticlassClsModel):
 
         mmpretrain_inputs: dict[str, Any] = {}
 
-        mmpretrain_inputs["inputs"] = entity.images  # B x C x H x W PyTorch tensor
+        mmpretrain_inputs["inputs"] = entity.stacked_images  # B x C x H x W PyTorch tensor
         mmpretrain_inputs["data_samples"] = [
             DataSample(
                 metainfo={
@@ -160,7 +160,7 @@ class MMPretrainMultilabelClsModel(OTXMultilabelClsModel):
 
         mmpretrain_inputs: dict[str, Any] = {}
 
-        mmpretrain_inputs["inputs"] = entity.images  # B x C x H x W PyTorch tensor
+        mmpretrain_inputs["inputs"] = entity.stacked_images  # B x C x H x W PyTorch tensor
         mmpretrain_inputs["data_samples"] = [
             DataSample(
                 metainfo={

@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import torch
 from torchvision import tv_tensors
 
 from otx.core.data.entity.base import (
@@ -70,7 +71,7 @@ class DetBatchDataEntity(OTXBatchDataEntity[DetDataEntity]):
         batch_data = super().collate_fn(entities)
         return DetBatchDataEntity(
             batch_size=batch_data.batch_size,
-            images=batch_data.images,
+            images=tv_tensors.Image(data=torch.stack(batch_data.images, dim=0)),
             imgs_info=batch_data.imgs_info,
             bboxes=[entity.bboxes for entity in entities],
             labels=[entity.labels for entity in entities],

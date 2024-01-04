@@ -68,7 +68,7 @@ class MMDetInstanceSegCompatibleModel(OTXInstanceSegModel):
 
         mmdet_inputs: dict[str, Any] = {}
 
-        mmdet_inputs["inputs"] = entity.images  # B x C x H x W PyTorch tensor
+        mmdet_inputs["inputs"] = entity.stacked_images  # B x C x H x W PyTorch tensor
         mmdet_inputs["data_samples"] = []
 
         for img_info, bboxes, masks, polygons, labels in zip(

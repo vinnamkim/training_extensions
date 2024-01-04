@@ -66,7 +66,7 @@ class MMDetCompatibleModel(OTXDetectionModel):
 
         mmdet_inputs: dict[str, Any] = {}
 
-        mmdet_inputs["inputs"] = entity.images  # B x C x H x W PyTorch tensor
+        mmdet_inputs["inputs"] = entity.stacked_images  # B x C x H x W PyTorch tensor
         mmdet_inputs["data_samples"] = [
             DetDataSample(
                 metainfo={

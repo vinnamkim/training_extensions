@@ -60,7 +60,7 @@ class MMSegCompatibleModel(OTXSegmentationModel):
         from mmseg.structures import SegDataSample
 
         mmseg_inputs: dict[str, Any] = {}
-        mmseg_inputs["inputs"] = entity.images  # B x C x H x W PyTorch tensor
+        mmseg_inputs["inputs"] = entity.images  # A list of C x H x W PyTorch tensors
         mmseg_inputs["data_samples"] = [
             SegDataSample(
                 metainfo={
