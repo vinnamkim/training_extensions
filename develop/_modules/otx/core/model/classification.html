@@ -25,7 +25,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=949a1ff5" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/custom.css?v=d626d52b" />
@@ -38,7 +38,7 @@
     <script src="../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../../../../_static/copybutton.js?v=ff8fa330"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../../_static/tabs.js?v=3030b3cb"></script>
     <script src="../../../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/otx/core/model/classification';</script>
@@ -250,23 +250,18 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torchmetrics</span> <span class="kn">import</span> <span class="n">Accuracy</span>
 
-<span class="kn">from</span> <span class="nn">otx.algo.hooks.recording_forward_hook</span> <span class="kn">import</span> <span class="n">feature_vector_fn</span>
 <span class="kn">from</span> <span class="nn">otx.core.data.entity.base</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">OTXBatchLossEntity</span><span class="p">,</span>
     <span class="n">T_OTXBatchDataEntity</span><span class="p">,</span>
     <span class="n">T_OTXBatchPredEntity</span><span class="p">,</span>
-    <span class="n">T_OTXBatchPredEntityWithXAI</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">otx.core.data.entity.classification</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span>
     <span class="n">HlabelClsBatchPredEntity</span><span class="p">,</span>
-    <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
     <span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span>
     <span class="n">MulticlassClsBatchPredEntity</span><span class="p">,</span>
-    <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">,</span>
     <span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span>
     <span class="n">MultilabelClsBatchPredEntity</span><span class="p">,</span>
-    <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">otx.core.data.entity.tile</span> <span class="kn">import</span> <span class="n">T_OTXTileBatchDataEntity</span>
 <span class="kn">from</span> <span class="nn">otx.core.exporter.base</span> <span class="kn">import</span> <span class="n">OTXModelExporter</span>
@@ -278,6 +273,7 @@
     <span class="n">MultiLabelClsMetricCallable</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">otx.core.model.base</span> <span class="kn">import</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span> <span class="n">OTXModel</span><span class="p">,</span> <span class="n">OVModel</span>
+<span class="kn">from</span> <span class="nn">otx.core.schedulers</span> <span class="kn">import</span> <span class="n">LRSchedulerListCallable</span>
 <span class="kn">from</span> <span class="nn">otx.core.types.label</span> <span class="kn">import</span> <span class="n">HLabelInfo</span>
 <span class="kn">from</span> <span class="nn">otx.core.utils.config</span> <span class="kn">import</span> <span class="n">inplace_num_classes</span>
 <span class="kn">from</span> <span class="nn">otx.core.utils.utils</span> <span class="kn">import</span> <span class="n">get_mean_std_from_data_processing</span>
@@ -297,7 +293,7 @@
 <div class="viewcode-block" id="ExplainableOTXClsModel">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.classification.html#otx.core.model.classification.ExplainableOTXClsModel">[docs]</a>
 <span class="k">class</span> <span class="nc">ExplainableOTXClsModel</span><span class="p">(</span>
-    <span class="n">OTXModel</span><span class="p">[</span><span class="n">T_OTXBatchDataEntity</span><span class="p">,</span> <span class="n">T_OTXBatchPredEntity</span><span class="p">,</span> <span class="n">T_OTXBatchPredEntityWithXAI</span><span class="p">,</span> <span class="n">T_OTXTileBatchDataEntity</span><span class="p">],</span>
+    <span class="n">OTXModel</span><span class="p">[</span><span class="n">T_OTXBatchDataEntity</span><span class="p">,</span> <span class="n">T_OTXBatchPredEntity</span><span class="p">,</span> <span class="n">T_OTXTileBatchDataEntity</span><span class="p">],</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;OTX classification model which can attach a XAI hook.&quot;&quot;&quot;</span>
 
@@ -329,11 +325,10 @@
 
 <div class="viewcode-block" id="ExplainableOTXClsModel.forward_explain">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.classification.html#otx.core.model.classification.ExplainableOTXClsModel.forward_explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward_explain</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">inputs</span><span class="p">:</span> <span class="n">T_OTXBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_OTXBatchPredEntityWithXAI</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">forward_explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">T_OTXBatchDataEntity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_OTXBatchPredEntity</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Model forward function.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">otx.algo.hooks.recording_forward_hook</span> <span class="kn">import</span> <span class="n">feature_vector_fn</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">feature_vector_fn</span> <span class="o">=</span> <span class="n">feature_vector_fn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">explain_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_explain_fn</span><span class="p">()</span>
 
@@ -397,6 +392,8 @@
 
 
     <span class="k">def</span> <span class="nf">_reset_model_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">otx.algo.hooks.recording_forward_hook</span> <span class="kn">import</span> <span class="n">feature_vector_fn</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">explain_mode</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -434,7 +431,6 @@
     <span class="n">ExplainableOTXClsModel</span><span class="p">[</span>
         <span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span>
         <span class="n">MulticlassClsBatchPredEntity</span><span class="p">,</span>
-        <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">,</span>
         <span class="n">T_OTXTileBatchDataEntity</span><span class="p">,</span>
     <span class="p">],</span>
 <span class="p">):</span>
@@ -443,8 +439,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">optimizer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptimizerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
-        <span class="n">scheduler</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LRSchedulerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">LRSchedulerCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">:</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="p">:</span> <span class="n">LRSchedulerCallable</span> <span class="o">|</span> <span class="n">LRSchedulerListCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
         <span class="n">metric</span><span class="p">:</span> <span class="n">MetricCallable</span> <span class="o">=</span> <span class="n">MultiClassClsMetricCallable</span><span class="p">,</span>
         <span class="n">torch_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -472,7 +468,7 @@
 
     <span class="k">def</span> <span class="nf">_convert_pred_entity_to_compute_metric</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">preds</span><span class="p">:</span> <span class="n">MulticlassClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">,</span>
+        <span class="n">preds</span><span class="p">:</span> <span class="n">MulticlassClsBatchPredEntity</span><span class="p">,</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricInput</span><span class="p">:</span>
         <span class="n">pred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">preds</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
@@ -498,8 +494,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">DictConfig</span><span class="p">,</span>
-        <span class="n">optimizer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptimizerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
-        <span class="n">scheduler</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LRSchedulerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">LRSchedulerCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">:</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="p">:</span> <span class="n">LRSchedulerCallable</span> <span class="o">|</span> <span class="n">LRSchedulerListCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
         <span class="n">metric</span><span class="p">:</span> <span class="n">MetricCallable</span> <span class="o">=</span> <span class="n">MultiClassClsMetricCallable</span><span class="p">,</span>
         <span class="n">torch_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -554,7 +550,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MulticlassClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MulticlassClsBatchPredEntityWithXAI</span> <span class="o">|</span> <span class="n">OTXBatchLossEntity</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MulticlassClsBatchPredEntity</span> <span class="o">|</span> <span class="n">OTXBatchLossEntity</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">mmpretrain.structures</span> <span class="kn">import</span> <span class="n">DataSample</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
@@ -593,7 +589,7 @@
             <span class="n">feature_vectors</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;feature_vector&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="n">saliency_maps</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;saliency_map&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
-            <span class="k">return</span> <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">(</span>
+            <span class="k">return</span> <span class="n">MulticlassClsBatchPredEntity</span><span class="p">(</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">),</span>
                 <span class="n">images</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">images</span><span class="p">,</span>
                 <span class="n">imgs_info</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">imgs_info</span><span class="p">,</span>
@@ -637,7 +633,6 @@
     <span class="n">ExplainableOTXClsModel</span><span class="p">[</span>
         <span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span>
         <span class="n">MultilabelClsBatchPredEntity</span><span class="p">,</span>
-        <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
         <span class="n">T_OTXTileBatchDataEntity</span><span class="p">,</span>
     <span class="p">],</span>
 <span class="p">):</span>
@@ -646,8 +641,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">optimizer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptimizerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
-        <span class="n">scheduler</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LRSchedulerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">LRSchedulerCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">:</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="p">:</span> <span class="n">LRSchedulerCallable</span> <span class="o">|</span> <span class="n">LRSchedulerListCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
         <span class="n">metric</span><span class="p">:</span> <span class="n">MetricCallable</span> <span class="o">=</span> <span class="n">MultiLabelClsMetricCallable</span><span class="p">,</span>
         <span class="n">torch_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -676,7 +671,7 @@
 
     <span class="k">def</span> <span class="nf">_convert_pred_entity_to_compute_metric</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">preds</span><span class="p">:</span> <span class="n">MultilabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
+        <span class="n">preds</span><span class="p">:</span> <span class="n">MultilabelClsBatchPredEntity</span><span class="p">,</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricInput</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -700,8 +695,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">DictConfig</span><span class="p">,</span>
-        <span class="n">optimizer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptimizerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
-        <span class="n">scheduler</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LRSchedulerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">LRSchedulerCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">:</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="p">:</span> <span class="n">LRSchedulerCallable</span> <span class="o">|</span> <span class="n">LRSchedulerListCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
         <span class="n">metric</span><span class="p">:</span> <span class="n">MetricCallable</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">num_labels</span><span class="p">:</span> <span class="n">Accuracy</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;multilabel&quot;</span><span class="p">,</span> <span class="n">num_labels</span><span class="o">=</span><span class="n">num_labels</span><span class="p">),</span>
         <span class="n">torch_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -758,7 +753,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>  <span class="c1"># noqa: ANN401</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultilabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MultilabelClsBatchPredEntityWithXAI</span> <span class="o">|</span> <span class="n">OTXBatchLossEntity</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultilabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">OTXBatchLossEntity</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">mmpretrain.structures</span> <span class="kn">import</span> <span class="n">DataSample</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
@@ -797,7 +792,7 @@
             <span class="n">feature_vectors</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;feature_vector&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="n">saliency_maps</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;saliency_map&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
-            <span class="k">return</span> <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">(</span>
+            <span class="k">return</span> <span class="n">MultilabelClsBatchPredEntity</span><span class="p">(</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">),</span>
                 <span class="n">images</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">images</span><span class="p">,</span>
                 <span class="n">imgs_info</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">imgs_info</span><span class="p">,</span>
@@ -837,7 +832,6 @@
     <span class="n">ExplainableOTXClsModel</span><span class="p">[</span>
         <span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span>
         <span class="n">HlabelClsBatchPredEntity</span><span class="p">,</span>
-        <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
         <span class="n">T_OTXTileBatchDataEntity</span><span class="p">,</span>
     <span class="p">],</span>
 <span class="p">):</span>
@@ -846,8 +840,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hlabel_info</span><span class="p">:</span> <span class="n">HLabelInfo</span><span class="p">,</span>
-        <span class="n">optimizer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptimizerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
-        <span class="n">scheduler</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LRSchedulerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">LRSchedulerCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">:</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="p">:</span> <span class="n">LRSchedulerCallable</span> <span class="o">|</span> <span class="n">LRSchedulerListCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
         <span class="n">metric</span><span class="p">:</span> <span class="n">MetricCallable</span> <span class="o">=</span> <span class="n">HLabelClsMetricCallble</span><span class="p">,</span>
         <span class="n">torch_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -888,7 +882,7 @@
 
     <span class="k">def</span> <span class="nf">_convert_pred_entity_to_compute_metric</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">preds</span><span class="p">:</span> <span class="n">HlabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
+        <span class="n">preds</span><span class="p">:</span> <span class="n">HlabelClsBatchPredEntity</span><span class="p">,</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricInput</span><span class="p">:</span>
         <span class="n">hlabel_info</span><span class="p">:</span> <span class="n">HLabelInfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_info</span>  <span class="c1"># type: ignore[assignment]</span>
@@ -920,8 +914,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hlabel_info</span><span class="p">:</span> <span class="n">HLabelInfo</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">DictConfig</span><span class="p">,</span>
-        <span class="n">optimizer</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">OptimizerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
-        <span class="n">scheduler</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LRSchedulerCallable</span><span class="p">]</span> <span class="o">|</span> <span class="n">LRSchedulerCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">:</span> <span class="n">OptimizerCallable</span> <span class="o">=</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="p">:</span> <span class="n">LRSchedulerCallable</span> <span class="o">|</span> <span class="n">LRSchedulerListCallable</span> <span class="o">=</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span>
         <span class="n">metric</span><span class="p">:</span> <span class="n">MetricCallable</span> <span class="o">=</span> <span class="n">HLabelClsMetricCallble</span><span class="p">,</span>
         <span class="n">torch_compile</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -985,7 +979,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>  <span class="c1"># noqa: ANN401</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HlabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">HlabelClsBatchPredEntityWithXAI</span> <span class="o">|</span> <span class="n">OTXBatchLossEntity</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HlabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">OTXBatchLossEntity</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">mmpretrain.structures</span> <span class="kn">import</span> <span class="n">DataSample</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
@@ -1024,7 +1018,7 @@
             <span class="n">feature_vectors</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;feature_vector&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="n">saliency_maps</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;saliency_map&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
-            <span class="k">return</span> <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">(</span>
+            <span class="k">return</span> <span class="n">HlabelClsBatchPredEntity</span><span class="p">(</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span>
                 <span class="n">images</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">images</span><span class="p">,</span>
                 <span class="n">imgs_info</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">imgs_info</span><span class="p">,</span>
@@ -1061,7 +1055,7 @@
 <div class="viewcode-block" id="OVMulticlassClassificationModel">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.classification.html#otx.core.model.classification.OVMulticlassClassificationModel">[docs]</a>
 <span class="k">class</span> <span class="nc">OVMulticlassClassificationModel</span><span class="p">(</span>
-    <span class="n">OVModel</span><span class="p">[</span><span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span> <span class="n">MulticlassClsBatchPredEntity</span><span class="p">,</span> <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">],</span>
+    <span class="n">OVModel</span><span class="p">[</span><span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span> <span class="n">MulticlassClsBatchPredEntity</span><span class="p">],</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Classification model compatible for OpenVINO IR inference.</span>
 
@@ -1094,7 +1088,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ClassificationResult</span><span class="p">],</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MulticlassClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MulticlassClsBatchPredEntity</span><span class="p">:</span>
         <span class="n">pred_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">top_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span> <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
         <span class="n">pred_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">top_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
 
@@ -1104,7 +1098,7 @@
 
             <span class="c1"># Squeeze dim 2D =&gt; 1D, (1, internal_dim) =&gt; (internal_dim)</span>
             <span class="n">predicted_f_vectors</span> <span class="o">=</span> <span class="p">[</span><span class="n">out</span><span class="o">.</span><span class="n">feature_vector</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">(</span>
+            <span class="k">return</span> <span class="n">MulticlassClsBatchPredEntity</span><span class="p">(</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span>
                 <span class="n">images</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">images</span><span class="p">,</span>
                 <span class="n">imgs_info</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">imgs_info</span><span class="p">,</span>
@@ -1124,7 +1118,7 @@
 
     <span class="k">def</span> <span class="nf">_convert_pred_entity_to_compute_metric</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">preds</span><span class="p">:</span> <span class="n">MulticlassClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MulticlassClsBatchPredEntityWithXAI</span><span class="p">,</span>
+        <span class="n">preds</span><span class="p">:</span> <span class="n">MulticlassClsBatchPredEntity</span><span class="p">,</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MulticlassClsBatchDataEntity</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricInput</span><span class="p">:</span>
         <span class="n">pred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">preds</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
@@ -1138,9 +1132,7 @@
 
 <div class="viewcode-block" id="OVMultilabelClassificationModel">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.classification.html#otx.core.model.classification.OVMultilabelClassificationModel">[docs]</a>
-<span class="k">class</span> <span class="nc">OVMultilabelClassificationModel</span><span class="p">(</span>
-    <span class="n">OVModel</span><span class="p">[</span><span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span> <span class="n">MultilabelClsBatchPredEntity</span><span class="p">,</span> <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">],</span>
-<span class="p">):</span>
+<span class="k">class</span> <span class="nc">OVMultilabelClassificationModel</span><span class="p">(</span><span class="n">OVModel</span><span class="p">[</span><span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span> <span class="n">MultilabelClsBatchPredEntity</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Multilabel classification model compatible for OpenVINO IR inference.</span>
 
 <span class="sd">    It can consume OpenVINO IR model path or model name from Intel OMZ repository</span>
@@ -1174,7 +1166,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ClassificationResult</span><span class="p">],</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultilabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MultilabelClsBatchPredEntity</span><span class="p">:</span>
         <span class="n">pred_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">top_label</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">top_label</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">top_labels</span><span class="p">])</span> <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">outputs</span> <span class="ow">and</span> <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">saliency_map</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -1183,7 +1175,7 @@
 
             <span class="c1"># Squeeze dim 2D =&gt; 1D, (1, internal_dim) =&gt; (internal_dim)</span>
             <span class="n">predicted_f_vectors</span> <span class="o">=</span> <span class="p">[</span><span class="n">out</span><span class="o">.</span><span class="n">feature_vector</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">(</span>
+            <span class="k">return</span> <span class="n">MultilabelClsBatchPredEntity</span><span class="p">(</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span>
                 <span class="n">images</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">images</span><span class="p">,</span>
                 <span class="n">imgs_info</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">imgs_info</span><span class="p">,</span>
@@ -1203,7 +1195,7 @@
 
     <span class="k">def</span> <span class="nf">_convert_pred_entity_to_compute_metric</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">preds</span><span class="p">:</span> <span class="n">MultilabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">MultilabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
+        <span class="n">preds</span><span class="p">:</span> <span class="n">MultilabelClsBatchPredEntity</span><span class="p">,</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">MultilabelClsBatchDataEntity</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricInput</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -1215,9 +1207,7 @@
 
 <div class="viewcode-block" id="OVHlabelClassificationModel">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.classification.html#otx.core.model.classification.OVHlabelClassificationModel">[docs]</a>
-<span class="k">class</span> <span class="nc">OVHlabelClassificationModel</span><span class="p">(</span>
-    <span class="n">OVModel</span><span class="p">[</span><span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span> <span class="n">HlabelClsBatchPredEntity</span><span class="p">,</span> <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">],</span>
-<span class="p">):</span>
+<span class="k">class</span> <span class="nc">OVHlabelClassificationModel</span><span class="p">(</span><span class="n">OVModel</span><span class="p">[</span><span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span> <span class="n">HlabelClsBatchPredEntity</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Hierarchical classification model compatible for OpenVINO IR inference.</span>
 
 <span class="sd">    It can consume OpenVINO IR model path or model name from Intel OMZ repository</span>
@@ -1251,7 +1241,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ClassificationResult</span><span class="p">],</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HlabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HlabelClsBatchPredEntity</span><span class="p">:</span>
         <span class="n">all_pred_labels</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">all_pred_scores</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
@@ -1286,7 +1276,7 @@
 
             <span class="c1"># Squeeze dim 2D =&gt; 1D, (1, internal_dim) =&gt; (internal_dim)</span>
             <span class="n">predicted_f_vectors</span> <span class="o">=</span> <span class="p">[</span><span class="n">out</span><span class="o">.</span><span class="n">feature_vector</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">(</span>
+            <span class="k">return</span> <span class="n">HlabelClsBatchPredEntity</span><span class="p">(</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span>
                 <span class="n">images</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">images</span><span class="p">,</span>
                 <span class="n">imgs_info</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">imgs_info</span><span class="p">,</span>
@@ -1306,7 +1296,7 @@
 
     <span class="k">def</span> <span class="nf">_convert_pred_entity_to_compute_metric</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">preds</span><span class="p">:</span> <span class="n">HlabelClsBatchPredEntity</span> <span class="o">|</span> <span class="n">HlabelClsBatchPredEntityWithXAI</span><span class="p">,</span>
+        <span class="n">preds</span><span class="p">:</span> <span class="n">HlabelClsBatchPredEntity</span><span class="p">,</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">HlabelClsBatchDataEntity</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetricInput</span><span class="p">:</span>
         <span class="n">cls_heads_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hierarchical_info</span><span class="p">[</span><span class="s2">&quot;cls_heads_info&quot;</span><span class="p">]</span>

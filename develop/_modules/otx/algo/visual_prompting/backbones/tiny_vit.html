@@ -25,7 +25,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=949a1ff5" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/custom.css?v=d626d52b" />
@@ -38,7 +38,7 @@
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="../../../../../_static/copybutton.js?v=ff8fa330"></script>
+    <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     <script src="../../../../../_static/design-tabs.js?v=36754332"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/otx/algo/visual_prompting/backbones/tiny_vit';</script>
@@ -246,7 +246,7 @@
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>  <span class="c1"># noqa: N812</span>
-<span class="kn">from</span> <span class="nn">timm.layers</span> <span class="kn">import</span> <span class="n">DropPath</span><span class="p">,</span> <span class="n">to_2tuple</span><span class="p">,</span> <span class="n">trunc_normal_</span>
+<span class="kn">from</span> <span class="nn">timm.models.layers</span> <span class="kn">import</span> <span class="n">DropPath</span><span class="p">,</span> <span class="n">to_2tuple</span><span class="p">,</span> <span class="n">trunc_normal_</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">nn</span>
 
 <span class="kn">from</span> <span class="nn">otx.algo.visual_prompting.utils.layer_norm_2d</span> <span class="kn">import</span> <span class="n">LayerNorm2d</span>
