@@ -317,6 +317,7 @@
 <li class="toctree-l4"><a class="reference internal" href="otx.core.exporter.html">otx.core.exporter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="otx.core.metrics.html">otx.core.metrics</a></li>
 <li class="toctree-l4 current active"><a class="reference internal" href="otx.core.model.html">otx.core.model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="otx.core.optimizer.html">otx.core.optimizer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="otx.core.schedulers.html">otx.core.schedulers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="otx.core.types.html">otx.core.types</a></li>
 <li class="toctree-l4"><a class="reference internal" href="otx.core.utils.html">otx.core.utils</a></li>
@@ -327,6 +328,7 @@
 <li class="toctree-l3"><a class="reference internal" href="otx.hpo.html">otx.hpo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="otx.recipe.html">otx.recipe</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="otx.tools.html">otx.tools</a><input class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-16"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="otx.tools.converter.html">otx.tools.converter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="otx.tools.translate_mmrecipe.html">otx.tools.translate_mmrecipe</a></li>
 </ul>
 </li>
@@ -407,6 +409,12 @@
 <dd class="field-odd"><p><strong>num_classes</strong> – Number of classes this model can predict.</p>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="otx.core.model.base.OTXModel.explain_mode">
+<span class="sig-name descname"><span class="pre">explain_mode</span></span><a class="headerlink" href="#otx.core.model.base.OTXModel.explain_mode" title="Link to this definition">#</a></dt>
+<dd><p>If true, <cite>self.predict_step()</cite> will produce a XAI output as well</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="otx.core.model.base.OTXModel.configure_metric">
 <span class="sig-name descname"><span class="pre">configure_metric</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../_modules/otx/core/model/base.html#OTXModel.configure_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.base.OTXModel.configure_metric" title="Link to this definition">#</a></dt>
@@ -578,6 +586,15 @@ comes in mixed precision (some operations, however, remain in FP32).</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="otx.core.model.base.OTXModel.patch_optimizer_and_scheduler_for_hpo">
+<span class="sig-name descname"><span class="pre">patch_optimizer_and_scheduler_for_hpo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../_modules/otx/core/model/base.html#OTXModel.patch_optimizer_and_scheduler_for_hpo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.base.OTXModel.patch_optimizer_and_scheduler_for_hpo" title="Link to this definition">#</a></dt>
+<dd><p>Patch optimizer and scheduler for hyperparameter optimization.</p>
+<p>This is inplace function changing inner states (<cite>optimizer_callable</cite> and <cite>scheduler_callable</cite>).
+Both will be changed to be picklable. In addition, <cite>optimizer_callable</cite> is changed
+to make its hyperparameters gettable.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="otx.core.model.base.OTXModel.predict_step">
 <span class="sig-name descname"><span class="pre">predict_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T_OTXBatchDataEntity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T_OTXBatchPredEntity</span></span></span><a class="reference internal" href="../../../_modules/otx/core/model/base.html#OTXModel.predict_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.base.OTXModel.predict_step" title="Link to this definition">#</a></dt>
 <dd><p>Step function called during PyTorch Lightning Trainer’s predict.</p>
@@ -658,8 +675,8 @@ labels.</p></li>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="otx.core.model.base.OTXModel.explain_mode">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explain_mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></em><a class="headerlink" href="#otx.core.model.base.OTXModel.explain_mode" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explain_mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></em><a class="headerlink" href="#id0" title="Link to this definition">#</a></dt>
 <dd><p>Get model explain mode.</p>
 </dd></dl>
 
@@ -714,6 +731,12 @@ OVModel supports synchronous as well as asynchronous inference type.</p>
 <dt class="sig sig-object py" id="otx.core.model.base.OVModel.optimize">
 <span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="otx.core.data.html#otx.core.data.OTXDataModule" title="otx.core.data.OTXDataModule"><span class="pre">OTXDataModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptq_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="../../../_modules/otx/core/model/base.html#OVModel.optimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.base.OVModel.optimize" title="Link to this definition">#</a></dt>
 <dd><p>Runs NNCF quantization.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="otx.core.model.base.OVModel.transform_fn">
+<span class="sig-name descname"><span class="pre">transform_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T_OTXBatchDataEntity</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="../../../_modules/otx/core/model/base.html#OVModel.transform_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.base.OVModel.transform_fn" title="Link to this definition">#</a></dt>
+<dd><p>Data transform function for PTQ.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -773,6 +796,15 @@ OVModel supports synchronous as well as asynchronous inference type.</p>
    </code>
   </a>
   <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#otx.core.model.base.OTXModel.explain_mode">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       OTXModel.explain_mode
+      </span>
+     </code>
+    </a>
+   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#otx.core.model.base.OTXModel.configure_metric">
      <code class="docutils literal notranslate">
@@ -945,6 +977,15 @@ OVModel supports synchronous as well as asynchronous inference type.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#otx.core.model.base.OTXModel.patch_optimizer_and_scheduler_for_hpo">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       OTXModel.patch_optimizer_and_scheduler_for_hpo()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#otx.core.model.base.OTXModel.predict_step">
      <code class="docutils literal notranslate">
       <span class="pre">
@@ -1008,7 +1049,7 @@ OVModel supports synchronous as well as asynchronous inference type.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#otx.core.model.base.OTXModel.explain_mode">
+    <a class="reference internal nav-link" href="#id0">
      <code class="docutils literal notranslate">
       <span class="pre">
        OTXModel.explain_mode
@@ -1077,6 +1118,15 @@ OVModel supports synchronous as well as asynchronous inference type.</p>
      <code class="docutils literal notranslate">
       <span class="pre">
        OVModel.optimize()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#otx.core.model.base.OVModel.transform_fn">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       OVModel.transform_fn()
       </span>
      </code>
     </a>

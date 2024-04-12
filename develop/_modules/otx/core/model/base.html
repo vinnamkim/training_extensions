@@ -240,6 +240,8 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;Class definition for base model entity used in OTX.&quot;&quot;&quot;</span>
 
+<span class="c1"># mypy: disable-error-code=&quot;arg-type&quot;</span>
+
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">contextlib</span>
@@ -256,6 +258,7 @@
 <span class="kn">from</span> <span class="nn">jsonargparse</span> <span class="kn">import</span> <span class="n">ArgumentParser</span>
 <span class="kn">from</span> <span class="nn">lightning</span> <span class="kn">import</span> <span class="n">LightningModule</span>
 <span class="kn">from</span> <span class="nn">openvino.model_api.models</span> <span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">openvino.model_api.tilers</span> <span class="kn">import</span> <span class="n">Tiler</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">nn</span>
 <span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">ConstantLR</span>
 <span class="kn">from</span> <span class="nn">torch.optim.sgd</span> <span class="kn">import</span> <span class="n">SGD</span>
@@ -268,10 +271,12 @@
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">otx.core.data.entity.tile</span> <span class="kn">import</span> <span class="n">OTXTileBatchDataEntity</span><span class="p">,</span> <span class="n">T_OTXTileBatchDataEntity</span>
 <span class="kn">from</span> <span class="nn">otx.core.exporter.base</span> <span class="kn">import</span> <span class="n">OTXModelExporter</span>
+<span class="kn">from</span> <span class="nn">otx.core.exporter.native</span> <span class="kn">import</span> <span class="n">OTXNativeModelExporter</span>
 <span class="kn">from</span> <span class="nn">otx.core.metrics</span> <span class="kn">import</span> <span class="n">MetricInput</span><span class="p">,</span> <span class="n">NullMetricCallable</span>
-<span class="kn">from</span> <span class="nn">otx.core.schedulers</span> <span class="kn">import</span> <span class="n">LRSchedulerListCallable</span>
+<span class="kn">from</span> <span class="nn">otx.core.optimizer.callable</span> <span class="kn">import</span> <span class="n">OptimizerCallableSupportHPO</span>
+<span class="kn">from</span> <span class="nn">otx.core.schedulers</span> <span class="kn">import</span> <span class="n">LRSchedulerListCallable</span><span class="p">,</span> <span class="n">PicklableLRSchedulerCallable</span>
 <span class="kn">from</span> <span class="nn">otx.core.schedulers.warmup_schedulers</span> <span class="kn">import</span> <span class="n">LinearWarmupScheduler</span>
-<span class="kn">from</span> <span class="nn">otx.core.types.export</span> <span class="kn">import</span> <span class="n">OTXExportFormatType</span>
+<span class="kn">from</span> <span class="nn">otx.core.types.export</span> <span class="kn">import</span> <span class="n">OTXExportFormatType</span><span class="p">,</span> <span class="n">TaskLevelExportParameters</span>
 <span class="kn">from</span> <span class="nn">otx.core.types.label</span> <span class="kn">import</span> <span class="n">LabelInfo</span><span class="p">,</span> <span class="n">NullLabelInfo</span>
 <span class="kn">from</span> <span class="nn">otx.core.types.precision</span> <span class="kn">import</span> <span class="n">OTXPrecisionType</span>
 <span class="kn">from</span> <span class="nn">otx.core.utils.build</span> <span class="kn">import</span> <span class="n">get_default_num_async_infer_requests</span>
@@ -318,6 +323,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        num_classes: Number of classes this model can predict.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        explain_mode: If true, `self.predict_step()` will produce a XAI output as well</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_OPTIMIZED_MODEL_BASE_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;optimized_model&quot;</span>
@@ -335,7 +343,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_label_info</span> <span class="o">=</span> <span class="n">LabelInfo</span><span class="o">.</span><span class="n">from_num_classes</span><span class="p">(</span><span class="n">num_classes</span><span class="p">)</span> <span class="k">if</span> <span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">NullLabelInfo</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">classification_layers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_model</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">original_model_forward</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_explain_mode</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_callable</span> <span class="o">=</span> <span class="n">ensure_callable</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scheduler_callable</span> <span class="o">=</span> <span class="n">ensure_callable</span><span class="p">(</span><span class="n">scheduler</span><span class="p">)</span>
@@ -769,9 +777,11 @@
 
 
     <span class="k">def</span> <span class="nf">_reset_model_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO(vinnamkim): This will be revisited by the export refactoring</span>
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">_restore_model_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># TODO(vinnamkim): This will be revisited by the export refactoring</span>
         <span class="k">pass</span>
 
 <div class="viewcode-block" id="OTXModel.forward_tiles">
@@ -902,6 +912,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_exporter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OTXModelExporter</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Defines exporter of the model. Should be overridden in subclasses.&quot;&quot;&quot;</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s2">&quot;To export this OTXModel, you should implement an appropriate exporter for it. &quot;</span>
             <span class="s2">&quot;You can try to reuse ones provided in `otx.core.exporter.*`.&quot;</span>
@@ -909,33 +920,41 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_export_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Defines parameters required to export a particular model implementation.</span>
+    <span class="k">def</span> <span class="nf">_export_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TaskLevelExportParameters</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Defines export parameters sharable at a task level.</span>
 
-<span class="sd">        To export OTXModel, you should define an appropriate parameters.&quot;</span>
-<span class="sd">        &quot;This is used in the constructor of `self._exporter`. &quot;</span>
-<span class="sd">        &quot;For example, `self._exporter = SomeExporter(**self.export_parameters)`. &quot;</span>
-<span class="sd">        &quot;Please refer to `otx.core.exporter.*` for detailed examples.&quot;</span>
+<span class="sd">        To export OTXModel which is compatible with ModelAPI,</span>
+<span class="sd">        you should define an appropriate export parameters for each task.</span>
+<span class="sd">        This property is usually defined at the task level classes defined in `otx.core.model.*`.</span>
+<span class="sd">        Please refer to `TaskLevelExportParameters` for more details.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            dict[str, Any]: parameters of exporter.</span>
+<span class="sd">            Collection of exporter parameters that can be defined at a task level.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            This example shows how this property is used at the new model development</span>
+
+<span class="sd">            ```python</span>
+
+<span class="sd">            class MyDetectionModel(OTXDetectionModel):</span>
+<span class="sd">                ...</span>
+
+<span class="sd">                @property</span>
+<span class="sd">                def _exporter(self) -&gt; OTXModelExporter:</span>
+<span class="sd">                    # `self._export_parameters` defined at `OTXDetectionModel`</span>
+<span class="sd">                    # You can redefine it `MyDetectionModel` if you need</span>
+<span class="sd">                    return OTXModelExporter(</span>
+<span class="sd">                        task_level_export_parameters=self._export_parameters,</span>
+<span class="sd">                        ...</span>
+<span class="sd">                    )</span>
+<span class="sd">            ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">all_labels</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">all_label_ids</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_info</span><span class="o">.</span><span class="n">label_names</span><span class="p">:</span>
-            <span class="n">all_labels</span> <span class="o">+=</span> <span class="n">lbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
-            <span class="n">all_label_ids</span> <span class="o">+=</span> <span class="n">lbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
-
-        <span class="c1"># not every model requires ptq_config</span>
-        <span class="n">optimization_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimization_config</span>
-        <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="p">(</span><span class="s2">&quot;model_info&quot;</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">):</span> <span class="n">all_labels</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-            <span class="p">(</span><span class="s2">&quot;model_info&quot;</span><span class="p">,</span> <span class="s2">&quot;label_ids&quot;</span><span class="p">):</span> <span class="n">all_label_ids</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-            <span class="p">(</span><span class="s2">&quot;model_info&quot;</span><span class="p">,</span> <span class="s2">&quot;optimization_config&quot;</span><span class="p">):</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">optimization_config</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">&quot;model_info&quot;</span><span class="p">,</span> <span class="s2">&quot;label_info&quot;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_info</span><span class="o">.</span><span class="n">to_json</span><span class="p">(),</span>
-        <span class="p">}</span>
-
-        <span class="k">return</span> <span class="n">parameters</span>
+        <span class="k">return</span> <span class="n">TaskLevelExportParameters</span><span class="p">(</span>
+            <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;null&quot;</span><span class="p">,</span>
+            <span class="n">task_type</span><span class="o">=</span><span class="s2">&quot;null&quot;</span><span class="p">,</span>
+            <span class="n">label_info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_info</span><span class="p">,</span>
+            <span class="n">optimization_config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_optimization_config</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_reset_prediction_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset its prediction layer with a given number of classes.</span>
@@ -981,6 +1000,22 @@
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">lr_scheduler_step</span><span class="p">(</span><span class="n">scheduler</span><span class="o">=</span><span class="n">scheduler</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OTXModel.patch_optimizer_and_scheduler_for_hpo">
+<a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.base.html#otx.core.model.base.OTXModel.patch_optimizer_and_scheduler_for_hpo">[docs]</a>
+    <span class="k">def</span> <span class="nf">patch_optimizer_and_scheduler_for_hpo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Patch optimizer and scheduler for hyperparameter optimization.</span>
+
+<span class="sd">        This is inplace function changing inner states (`optimizer_callable` and `scheduler_callable`).</span>
+<span class="sd">        Both will be changed to be picklable. In addition, `optimizer_callable` is changed</span>
+<span class="sd">        to make its hyperparameters gettable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer_callable</span><span class="p">,</span> <span class="n">OptimizerCallableSupportHPO</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_callable</span> <span class="o">=</span> <span class="n">OptimizerCallableSupportHPO</span><span class="o">.</span><span class="n">from_callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer_callable</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduler_callable</span><span class="p">,</span> <span class="n">PicklableLRSchedulerCallable</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scheduler_callable</span> <span class="o">=</span> <span class="n">PicklableLRSchedulerCallable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduler_callable</span><span class="p">)</span></div>
 </div>
 
 
@@ -1119,13 +1154,6 @@
             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Model is already optimized by PTQ&quot;</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">transform_fn</span><span class="p">(</span><span class="n">data_batch</span><span class="p">:</span> <span class="n">T_OTXBatchDataEntity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
-            <span class="n">np_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customize_inputs</span><span class="p">(</span><span class="n">data_batch</span><span class="p">)</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">np_data</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">resized_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">h</span><span class="p">))</span>
-            <span class="n">resized_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">input_transform</span><span class="p">(</span><span class="n">resized_image</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_change_layout</span><span class="p">(</span><span class="n">resized_image</span><span class="p">)</span>  <span class="c1"># noqa: SLF001</span>
-
         <span class="n">train_dataset</span> <span class="o">=</span> <span class="n">data_module</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">()</span>
 
         <span class="n">ptq_config_from_ir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_ptq_config_from_ir</span><span class="p">(</span><span class="n">ov_model</span><span class="p">)</span>
@@ -1135,7 +1163,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ptq_config</span> <span class="o">=</span> <span class="n">ptq_config_from_ir</span>
 
-        <span class="n">quantization_dataset</span> <span class="o">=</span> <span class="n">nncf</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">transform_fn</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+        <span class="n">quantization_dataset</span> <span class="o">=</span> <span class="n">nncf</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_fn</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
 
         <span class="n">compressed_model</span> <span class="o">=</span> <span class="n">nncf</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
             <span class="n">ov_model</span><span class="p">,</span>
@@ -1146,6 +1174,19 @@
         <span class="n">openvino</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">compressed_model</span><span class="p">,</span> <span class="n">output_model_path</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">output_model_path</span></div>
+
+
+<div class="viewcode-block" id="OVModel.transform_fn">
+<a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.base.html#otx.core.model.base.OVModel.transform_fn">[docs]</a>
+    <span class="k">def</span> <span class="nf">transform_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_batch</span><span class="p">:</span> <span class="n">T_OTXBatchDataEntity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Data transform function for PTQ.&quot;&quot;&quot;</span>
+        <span class="n">np_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customize_inputs</span><span class="p">(</span><span class="n">data_batch</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">np_data</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># NOTE: Tiler wraps the model, so we need to unwrap it to get the model</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">model</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">Tiler</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">resized_image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">h</span><span class="p">))</span>
+        <span class="n">resized_image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">input_transform</span><span class="p">(</span><span class="n">resized_image</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">_change_layout</span><span class="p">(</span><span class="n">resized_image</span><span class="p">)</span>  <span class="c1"># noqa: SLF001</span></div>
 
 
     <span class="k">def</span> <span class="nf">_read_ptq_config_from_ir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ov_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -1183,6 +1224,11 @@
         <span class="n">initial_ptq_config</span> <span class="o">=</span> <span class="n">argparser</span><span class="o">.</span><span class="n">parse_object</span><span class="p">(</span><span class="n">initial_ptq_config</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">argparser</span><span class="o">.</span><span class="n">instantiate_classes</span><span class="p">(</span><span class="n">initial_ptq_config</span><span class="p">)</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_exporter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OTXNativeModelExporter</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exporter of the OVModel for exportable code.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">OTXNativeModelExporter</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">w</span><span class="p">),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_export_parameters</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">model_adapter_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
