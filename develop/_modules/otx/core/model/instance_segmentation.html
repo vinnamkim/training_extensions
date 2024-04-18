@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>otx.core.model.instance_segmentation &#8212; OpenVINO™ Training Extensions 2.0.0 documentation</title>
+    <title>otx.core.model.instance_segmentation &#8212; OpenVINO™ Training Extensions 2.1.0rc0 documentation</title>
   
   
   
@@ -34,7 +34,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
 
-    <script src="../../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../../_static/documentation_options.js?v=b28fb44a"></script>
     <script src="../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -244,7 +244,8 @@
 
 <span class="kn">import</span> <span class="nn">logging</span> <span class="k">as</span> <span class="nn">log</span>
 <span class="kn">import</span> <span class="nn">types</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Literal</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Literal</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
@@ -253,10 +254,11 @@
 <span class="kn">from</span> <span class="nn">openvino.model_api.tilers</span> <span class="kn">import</span> <span class="n">InstanceSegmentationTiler</span>
 <span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">tv_tensors</span>
 
+<span class="kn">from</span> <span class="nn">otx.algo.explain.explain_algo</span> <span class="kn">import</span> <span class="n">get_feature_vector</span>
 <span class="kn">from</span> <span class="nn">otx.core.config.data</span> <span class="kn">import</span> <span class="n">TileConfig</span>
 <span class="kn">from</span> <span class="nn">otx.core.data.entity.base</span> <span class="kn">import</span> <span class="n">OTXBatchLossEntity</span>
 <span class="kn">from</span> <span class="nn">otx.core.data.entity.instance_segmentation</span> <span class="kn">import</span> <span class="n">InstanceSegBatchDataEntity</span><span class="p">,</span> <span class="n">InstanceSegBatchPredEntity</span>
-<span class="kn">from</span> <span class="nn">otx.core.data.entity.tile</span> <span class="kn">import</span> <span class="n">TileBatchInstSegDataEntity</span>
+<span class="kn">from</span> <span class="nn">otx.core.data.entity.tile</span> <span class="kn">import</span> <span class="n">OTXTileBatchDataEntity</span>
 <span class="kn">from</span> <span class="nn">otx.core.metrics</span> <span class="kn">import</span> <span class="n">MetricInput</span>
 <span class="kn">from</span> <span class="nn">otx.core.metrics.mean_ap</span> <span class="kn">import</span> <span class="n">MaskRLEMeanAPCallable</span>
 <span class="kn">from</span> <span class="nn">otx.core.model.base</span> <span class="kn">import</span> <span class="n">DefaultOptimizerCallable</span><span class="p">,</span> <span class="n">DefaultSchedulerCallable</span><span class="p">,</span> <span class="n">OTXModel</span><span class="p">,</span> <span class="n">OVModel</span>
@@ -269,7 +271,7 @@
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">lightning.pytorch.cli</span> <span class="kn">import</span> <span class="n">LRSchedulerCallable</span><span class="p">,</span> <span class="n">OptimizerCallable</span>
     <span class="kn">from</span> <span class="nn">mmdet.models.data_preprocessors</span> <span class="kn">import</span> <span class="n">DetDataPreprocessor</span>
-    <span class="kn">from</span> <span class="nn">mmdet.models.detectors.base</span> <span class="kn">import</span> <span class="n">TwoStageDetector</span>
+    <span class="kn">from</span> <span class="nn">mmdet.models.detectors.two_stage</span> <span class="kn">import</span> <span class="n">TwoStageDetector</span>
     <span class="kn">from</span> <span class="nn">mmdet.structures</span> <span class="kn">import</span> <span class="n">OptSampleList</span>
     <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">DictConfig</span>
     <span class="kn">from</span> <span class="nn">openvino.model_api.models.utils</span> <span class="kn">import</span> <span class="n">InstanceSegmentationResult</span>
@@ -281,13 +283,7 @@
 
 <div class="viewcode-block" id="OTXInstanceSegModel">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.instance_segmentation.html#otx.core.model.instance_segmentation.OTXInstanceSegModel">[docs]</a>
-<span class="k">class</span> <span class="nc">OTXInstanceSegModel</span><span class="p">(</span>
-    <span class="n">OTXModel</span><span class="p">[</span>
-        <span class="n">InstanceSegBatchDataEntity</span><span class="p">,</span>
-        <span class="n">InstanceSegBatchPredEntity</span><span class="p">,</span>
-        <span class="n">TileBatchInstSegDataEntity</span><span class="p">,</span>
-    <span class="p">],</span>
-<span class="p">):</span>
+<span class="k">class</span> <span class="nc">OTXInstanceSegModel</span><span class="p">(</span><span class="n">OTXModel</span><span class="p">[</span><span class="n">InstanceSegBatchDataEntity</span><span class="p">,</span> <span class="n">InstanceSegBatchPredEntity</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for the Instance Segmentation models used in OTX.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -309,7 +305,7 @@
 
 <div class="viewcode-block" id="OTXInstanceSegModel.forward_tiles">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.instance_segmentation.html#otx.core.model.instance_segmentation.OTXInstanceSegModel.forward_tiles">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward_tiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">TileBatchInstSegDataEntity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceSegBatchPredEntity</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">forward_tiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">OTXTileBatchDataEntity</span><span class="p">[</span><span class="n">InstanceSegBatchDataEntity</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">InstanceSegBatchPredEntity</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unpack instance segmentation tiles.</span>
 
 <span class="sd">        Args:</span>
@@ -322,11 +318,11 @@
         <span class="n">tile_attrs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">merger</span> <span class="o">=</span> <span class="n">InstanceSegTileMerge</span><span class="p">(</span>
             <span class="n">inputs</span><span class="o">.</span><span class="n">imgs_info</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tile_config</span><span class="o">.</span><span class="n">iou_threshold</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tile_config</span><span class="o">.</span><span class="n">max_num_instances</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tile_config</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">batch_tile_attrs</span><span class="p">,</span> <span class="n">batch_tile_input</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">unbind</span><span class="p">():</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">batch_tile_input</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_explain</span><span class="p">(</span><span class="n">batch_tile_input</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">explain_mode</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">batch_tile_input</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">OTXBatchLossEntity</span><span class="p">):</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Loss output is not supported for tile merging&quot;</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
@@ -334,7 +330,7 @@
             <span class="n">tile_attrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">batch_tile_attrs</span><span class="p">)</span>
         <span class="n">pred_entities</span> <span class="o">=</span> <span class="n">merger</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">tile_preds</span><span class="p">,</span> <span class="n">tile_attrs</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">InstanceSegBatchPredEntity</span><span class="p">(</span>
+        <span class="n">pred_entity</span> <span class="o">=</span> <span class="n">InstanceSegBatchPredEntity</span><span class="p">(</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
             <span class="n">images</span><span class="o">=</span><span class="p">[</span><span class="n">pred_entity</span><span class="o">.</span><span class="n">image</span> <span class="k">for</span> <span class="n">pred_entity</span> <span class="ow">in</span> <span class="n">pred_entities</span><span class="p">],</span>
             <span class="n">imgs_info</span><span class="o">=</span><span class="p">[</span><span class="n">pred_entity</span><span class="o">.</span><span class="n">img_info</span> <span class="k">for</span> <span class="n">pred_entity</span> <span class="ow">in</span> <span class="n">pred_entities</span><span class="p">],</span>
@@ -343,7 +339,12 @@
             <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">pred_entity</span><span class="o">.</span><span class="n">labels</span> <span class="k">for</span> <span class="n">pred_entity</span> <span class="ow">in</span> <span class="n">pred_entities</span><span class="p">],</span>
             <span class="n">masks</span><span class="o">=</span><span class="p">[</span><span class="n">pred_entity</span><span class="o">.</span><span class="n">masks</span> <span class="k">for</span> <span class="n">pred_entity</span> <span class="ow">in</span> <span class="n">pred_entities</span><span class="p">],</span>
             <span class="n">polygons</span><span class="o">=</span><span class="p">[</span><span class="n">pred_entity</span><span class="o">.</span><span class="n">polygons</span> <span class="k">for</span> <span class="n">pred_entity</span> <span class="ow">in</span> <span class="n">pred_entities</span><span class="p">],</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">explain_mode</span><span class="p">:</span>
+            <span class="n">pred_entity</span><span class="o">.</span><span class="n">saliency_map</span> <span class="o">=</span> <span class="p">[</span><span class="n">pred_entity</span><span class="o">.</span><span class="n">saliency_map</span> <span class="k">for</span> <span class="n">pred_entity</span> <span class="ow">in</span> <span class="n">pred_entities</span><span class="p">]</span>
+            <span class="n">pred_entity</span><span class="o">.</span><span class="n">feature_vector</span> <span class="o">=</span> <span class="p">[</span><span class="n">pred_entity</span><span class="o">.</span><span class="n">feature_vector</span> <span class="k">for</span> <span class="n">pred_entity</span> <span class="ow">in</span> <span class="n">pred_entities</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">pred_entity</span></div>
 
 
     <span class="nd">@property</span>
@@ -479,11 +480,14 @@
 
 <div class="viewcode-block" id="ExplainableOTXInstanceSegModel.forward_explain">
 <a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.instance_segmentation.html#otx.core.model.instance_segmentation.ExplainableOTXInstanceSegModel.forward_explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">forward_explain</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">inputs</span><span class="p">:</span> <span class="n">InstanceSegBatchDataEntity</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceSegBatchPredEntity</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">forward_explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">InstanceSegBatchDataEntity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InstanceSegBatchPredEntity</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Model forward function.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">OTXTileBatchDataEntity</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_tiles</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">feature_vector_fn</span> <span class="o">=</span> <span class="n">get_feature_vector</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">explain_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_explain_fn</span><span class="p">()</span>
+
         <span class="c1"># If customize_inputs is overridden</span>
         <span class="n">outputs</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_forward_explain_inst_seg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_customize_inputs</span><span class="p">(</span><span class="n">inputs</span><span class="p">))</span>
@@ -545,6 +549,22 @@
 
         <span class="n">explainer</span> <span class="o">=</span> <span class="n">MaskRCNNExplainAlgo</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">explainer</span><span class="o">.</span><span class="n">func</span></div>
+
+
+<div class="viewcode-block" id="ExplainableOTXInstanceSegModel.export_model_forward_context">
+<a class="viewcode-back" href="../../../../guide/reference/_autosummary/otx.core.model.instance_segmentation.html#otx.core.model.instance_segmentation.ExplainableOTXInstanceSegModel.export_model_forward_context">[docs]</a>
+    <span class="nd">@contextmanager</span>
+    <span class="k">def</span> <span class="nf">export_model_forward_context</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A context manager for managing the model&#39;s forward function during model exportation.</span>
+
+<span class="sd">        It temporarily modifies the model&#39;s forward function to generate output sinks</span>
+<span class="sd">        for explain results during the model graph tracing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_model_forward</span><span class="p">()</span>
+            <span class="k">yield</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_restore_model_forward</span><span class="p">()</span></div>
 
 
     <span class="k">def</span> <span class="nf">_reset_model_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

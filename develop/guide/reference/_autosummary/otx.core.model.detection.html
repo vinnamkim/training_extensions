@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>otx.core.model.detection &#8212; OpenVINO™ Training Extensions 2.0.0 documentation</title>
+    <title>otx.core.model.detection &#8212; OpenVINO™ Training Extensions 2.1.0rc0 documentation</title>
   
   
   
@@ -35,7 +35,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
 
-    <script src="../../../_static/documentation_options.js?v=79f5c508"></script>
+    <script src="../../../_static/documentation_options.js?v=b28fb44a"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -303,6 +303,9 @@
 <li class="toctree-l4"><a class="reference internal" href="otx.algo.detection.html">otx.algo.detection</a></li>
 <li class="toctree-l4"><a class="reference internal" href="otx.algo.segmentation.html">otx.algo.segmentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="otx.algo.visual_prompting.html">otx.algo.visual_prompting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="otx.algo.strategies.html">otx.algo.strategies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="otx.algo.accelerators.html">otx.algo.accelerators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="otx.algo.plugins.html">otx.algo.plugins</a></li>
 </ul>
 </li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="otx.cli.html">otx.cli</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-14"><i class="fa-solid fa-chevron-down"></i></label><ul>
@@ -400,6 +403,14 @@
 <dd><p>Bases: <a class="reference internal" href="#otx.core.model.detection.OTXDetectionModel" title="otx.core.model.detection.OTXDetectionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">OTXDetectionModel</span></code></a></p>
 <p>OTX detection model which can attach a XAI (Explainable AI) branch.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="otx.core.model.detection.ExplainableOTXDetModel.export_model_forward_context">
+<span class="sig-name descname"><span class="pre">export_model_forward_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.12)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/otx/core/model/detection.html#ExplainableOTXDetModel.export_model_forward_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.detection.ExplainableOTXDetModel.export_model_forward_context" title="Link to this definition">#</a></dt>
+<dd><p>A context manager for managing the model’s forward function during model exportation.</p>
+<p>It temporarily modifies the model’s forward function to generate output sinks
+for explain results during the model graph tracing.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="otx.core.model.detection.ExplainableOTXDetModel.forward_explain">
 <span class="sig-name descname"><span class="pre">forward_explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DetBatchDataEntity</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DetBatchPredEntity</span></span></span><a class="reference internal" href="../../../_modules/otx/core/model/detection.html#ExplainableOTXDetModel.forward_explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.detection.ExplainableOTXDetModel.forward_explain" title="Link to this definition">#</a></dt>
 <dd><p>Model forward function.</p>
@@ -432,11 +443,11 @@ compatible for OTX pipelines.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="otx.core.model.detection.OTXDetectionModel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">otx.core.model.detection.</span></span><span class="sig-name descname"><span class="pre">OTXDetectionModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer:</span> <span class="pre">OptimizerCallable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_default_optimizer_callable&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler:</span> <span class="pre">LRSchedulerCallable</span> <span class="pre">|</span> <span class="pre">LRSchedulerListCallable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_default_scheduler_callable&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric:</span> <span class="pre">MetricCallable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">_mean_ap_callable&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">torch_compile:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/otx/core/model/detection.html#OTXDetectionModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.detection.OTXDetectionModel" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="otx.core.model.base.html#otx.core.model.base.OTXModel" title="otx.core.model.base.OTXModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">OTXModel</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DetBatchDataEntity</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">DetBatchPredEntity</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TileBatchDetDataEntity</span></code>]</p>
+<dd><p>Bases: <a class="reference internal" href="otx.core.model.base.html#otx.core.model.base.OTXModel" title="otx.core.model.base.OTXModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">OTXModel</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">DetBatchDataEntity</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">DetBatchPredEntity</span></code>]</p>
 <p>Base class for the detection models used in OTX.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="otx.core.model.detection.OTXDetectionModel.forward_tiles">
-<span class="sig-name descname"><span class="pre">forward_tiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TileBatchDetDataEntity</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DetBatchPredEntity</span></span></span><a class="reference internal" href="../../../_modules/otx/core/model/detection.html#OTXDetectionModel.forward_tiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.detection.OTXDetectionModel.forward_tiles" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">forward_tiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">OTXTileBatchDataEntity</span><span class="p"><span class="pre">[</span></span><span class="pre">DetBatchDataEntity</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DetBatchPredEntity</span></span></span><a class="reference internal" href="../../../_modules/otx/core/model/detection.html#OTXDetectionModel.forward_tiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#otx.core.model.detection.OTXDetectionModel.forward_tiles" title="Link to this definition">#</a></dt>
 <dd><p>Unpack detection tiles.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -519,6 +530,15 @@ and create the OTX detection model compatible for OTX testing pipeline.</p>
    </code>
   </a>
   <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#otx.core.model.detection.ExplainableOTXDetModel.export_model_forward_context">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ExplainableOTXDetModel.export_model_forward_context()
+      </span>
+     </code>
+    </a>
+   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#otx.core.model.detection.ExplainableOTXDetModel.forward_explain">
      <code class="docutils literal notranslate">
